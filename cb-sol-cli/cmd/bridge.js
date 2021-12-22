@@ -73,15 +73,15 @@ const queryIsBurnCmd = new Command("query-is-burn")
 
 const cancelProposalCmd = new Command("cancel-proposal")
     .description("Cancel a proposal that has passed the expiry threshold")
-    .option('--bridge <address>', 'Bridge contract address', constants.BRIDGE_ADDRESS)
     .option('--chainId <id>', 'Chain ID of proposal to cancel', 0)
     .option('--depositNonce <value>', 'Deposit nonce of proposal to cancel', 0)
+    .option('--dataHash <value>', 'Hash of proposal metadata', constants.ERC20_PROPOSAL_HASH)
     .action(async function (args) {
         await setupParentArgs(args, args.parent.parent)
         const bridgeInstance = new ethers.Contract(args.bridge, constants.ContractABIs.Bridge.abi, args.wallet);
 
         log(args, `Setting proposal with chain ID ${args.chainId} and deposit nonce ${args.depositNonce} status to 'Cancelled`);
-        const tx = await bridgeInstance.adminCancelProposal(args.chainId, args.depositNonce);
+        const tx = await bridgeInstance.cancelProposal(args.chainId, args.depositNonce, args.dataHash);
         await waitForTx(args.provider, tx.hash)
     })
 
