@@ -73,6 +73,7 @@ const queryIsBurnCmd = new Command("query-is-burn")
 
 const cancelProposalCmd = new Command("cancel-proposal")
     .description("Cancel a proposal that has passed the expiry threshold")
+    .option('--bridge <address>', 'Bridge contract address', constants.BRIDGE_ADDRESS)
     .option('--chainId <id>', 'Chain ID of proposal to cancel', 0)
     .option('--depositNonce <value>', 'Deposit nonce of proposal to cancel', 0)
     .option('--dataHash <value>', 'Hash of proposal metadata', constants.ERC20_PROPOSAL_HASH)
