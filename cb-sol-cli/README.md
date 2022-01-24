@@ -37,4 +37,4 @@ There are multiple subcommands provided:
 - [`erc20`](docs/erc20.md): Interactions with ERC20 contracts and handlers
 - [`erc721`](docs/erc721.md): Interactions with ERC721 contracts and handler
 
-
+Test CI
