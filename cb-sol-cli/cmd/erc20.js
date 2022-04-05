@@ -4,6 +4,41 @@ const constants = require('../constants');
 const {Command} = require('commander');
 const {setupParentArgs, waitForTx, log, expandDecimals} = require("./utils")
 
+const isAdminCmd = new Command("is-admin")
+    .description("Check if address is admin")
+    .option('--admin <value>', 'Address to check', constants.deployerAddress)
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.BRIDGE_ADDRESS)
+    .action(async function (args) {
+        await setupParentArgs(args, args.parent.parent)
+        const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+        let res = await erc20Instance.hasRole(constants.ADMIN_ROLE, args.admin)
+        console.log(`[${args._name}] Address ${args.admin} ${res ? "is" : "is not"} an admin.`)
+    })
+
+const addAdminCmd = new Command("add-admin")
+    .description("Add an admin")
+    .option('--admin <address>', 'Address of admin', constants.adminAddresses[0])
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .action(async function (args) {
+        await setupParentArgs(args, args.parent.parent)
+        const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+        log(args, `Adding ${args.admin} as an admin.`)
+        let tx = await erc20Instance.grantRole(constants.ADMIN_ROLE, args.admin)
+        await waitForTx(args.provider, tx.hash)
+    })
+
+const renounceAdminCmd = new Command("renounce-admin")
+    .description("Renounce an admin")
+    .option('--admin <address>', 'Address of current admin', constants.adminAddresses[0])
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .action(async function (args) {
+        await setupParentArgs(args, args.parent.parent)
+        const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+        log(args, `Renouncing ${args.admin} as an admin.`)
+        let tx = await erc20Instance.renounceRole(constants.ADMIN_ROLE, args.admin)
+        await waitForTx(args.provider, tx.hash)
+    })
+
 const mintCmd = new Command("mint")
     .description("Mints erc20 tokens")
     .option('--amount <value>', 'Amount to mint', 100)
@@ -17,6 +52,18 @@ const mintCmd = new Command("mint")
         await waitForTx(args.provider, tx.hash)
     })
 
+const isMinterCmd = new Command("is-minter")
+    .description("Check if address is minter")
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .option('--minter <value>', 'Address to check', constants.relayerAddresses[0])
+    .action(async function (args) {
+            await setupParentArgs(args, args.parent.parent)
+            const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+            let MINTER_ROLE = await erc20Instance.MINTER_ROLE();
+            let res = await erc20Instance.hasRole(MINTER_ROLE, args.minter)
+            console.log(`[${args._name}] Address ${args.minter} ${res ? "is" : "is not"} a minter.`)
+    })
+
 const addMinterCmd = new Command("add-minter")
     .description("Add a new minter to the contract")
     .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
@@ -27,6 +74,19 @@ const addMinterCmd = new Command("add-minter")
         let MINTER_ROLE = await erc20Instance.MINTER_ROLE();
         log(args, `Adding ${args.minter} as a minter on contract ${args.erc20Address}`);
         const tx = await erc20Instance.grantRole(MINTER_ROLE, args.minter);
+        await waitForTx(args.provider, tx.hash)
+    })
+
+const removeMinterCmd = new Command("remove-minter")
+    .description("Remove a minter from the contract")
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .option('--minter <address>', 'Minter address', constants.relayerAddresses[1])
+    .action(async function(args) {
+        await setupParentArgs(args, args.parent.parent)
+        const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+        let MINTER_ROLE = await erc20Instance.MINTER_ROLE();
+        log(args, `Removing ${args.minter} as a minter on contract ${args.erc20Address}`);
+        const tx = await erc20Instance.revokeRole(MINTER_ROLE, args.minter);
         await waitForTx(args.provider, tx.hash)
     })
 
@@ -153,8 +213,13 @@ const proposalDataHashCmd = new Command("data-hash")
 const erc20Cmd = new Command("erc20")
 .option('-d, decimals <number>', "The number of decimal places for the erc20 token", 18)
 
+erc20Cmd.addCommand(isAdminCmd)
+erc20Cmd.addCommand(addAdminCmd)
+erc20Cmd.addCommand(renounceAdminCmd)
 erc20Cmd.addCommand(mintCmd)
+erc20Cmd.addCommand(isMinterCmd)
 erc20Cmd.addCommand(addMinterCmd)
+erc20Cmd.addCommand(removeMinterCmd)
 erc20Cmd.addCommand(approveCmd)
 erc20Cmd.addCommand(depositCmd)
 erc20Cmd.addCommand(balanceCmd)
