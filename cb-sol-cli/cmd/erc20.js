@@ -48,7 +48,7 @@ const mintCmd = new Command("mint")
 
         const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
         log(args, `Minting ${args.amount} tokens to ${args.wallet.address} on contract ${args.erc20Address}`);
-        const tx = await erc20Instance.mint(args.wallet.address, expandDecimals(args.amount, args.decimals));
+        const tx = await erc20Instance.mint(args.wallet.address, expandDecimals(args.amount, args.parent.decimals));
         await waitForTx(args.provider, tx.hash)
     })
 
