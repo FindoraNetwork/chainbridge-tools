@@ -4,6 +4,18 @@ const constants = require('../constants');
 const {Command} = require('commander');
 const {setupParentArgs, waitForTx, log} = require("./utils")
 
+const isAdminCmd = new Command("is-admin")
+    .description("Check if address is admin")
+    .option('--admin <value>', 'Address to check', constants.deployerAddress)
+    .option('--bridge <address>', 'Bridge contract address', constants.BRIDGE_ADDRESS)
+    .action(async function (args) {
+            await setupParentArgs(args, args.parent.parent)
+            const bridgeInstance = new ethers.Contract(args.bridge, constants.ContractABIs.Bridge.abi, args.wallet);
+
+            let res = await bridgeInstance.hasRole(constants.ADMIN_ROLE, args.admin)
+            console.log(`[${args._name}] Address ${args.admin} ${res ? "is" : "is not"} an admin.`)
+    })
+
 const isRelayerCmd = new Command("is-relayer")
     .description("Check if address is relayer")
     .option('--relayer <value>', 'Address to check', constants.relayerAddresses[0])
@@ -23,7 +35,7 @@ const addAdminCmd = new Command("add-admin")
   .action(async function (args) {
     await setupParentArgs(args, args.parent.parent)
     const bridgeInstance = new ethers.Contract(args.bridge, constants.ContractABIs.Bridge.abi, args.wallet);
-    log(args, `Adding ${args.admin} as a admin.`)
+    log(args, `Adding ${args.admin} as an admin.`)
     let tx = await bridgeInstance.grantRole(constants.ADMIN_ROLE, args.admin)
     await waitForTx(args.provider, tx.hash)
   })
@@ -35,8 +47,20 @@ const removeAdminCmd = new Command("remove-admin")
   .action(async function (args) {
     await setupParentArgs(args, args.parent.parent)
     const bridgeInstance = new ethers.Contract(args.bridge, constants.ContractABIs.Bridge.abi, args.wallet);
-    log(args, `Removing ${args.admin} as a admin.`)
+    log(args, `Removing ${args.admin} as an admin.`)
     let tx = await bridgeInstance.revokeRole(constants.ADMIN_ROLE, args.admin)
+    await waitForTx(args.provider, tx.hash)
+  })
+
+const transferAdminCmd = new Command("transfer-admin")
+  .description("Transfer admin")
+  .option('--admin <address>', 'Address of new admin', constants.adminAddresses[0])
+  .option('--bridge <address>', 'Bridge contract address', constants.BRIDGE_ADDRESS)
+  .action(async function (args) {
+    await setupParentArgs(args, args.parent.parent)
+    const bridgeInstance = new ethers.Contract(args.bridge, constants.ContractABIs.Bridge.abi, args.wallet);
+    log(args, `Transferring admin to ${args.admin}.`)
+    let tx = await bridgeInstance.renounceAdmin(args.admin)
     await waitForTx(args.provider, tx.hash)
   })
 
@@ -127,9 +151,11 @@ const withdrawCmd = new Command("withdraw")
 
 const adminCmd = new Command("admin")
 
+adminCmd.addCommand(isAdminCmd)
 adminCmd.addCommand(isRelayerCmd)
 adminCmd.addCommand(addAdminCmd)
 adminCmd.addCommand(removeAdminCmd)
+adminCmd.addCommand(transferAdminCmd)
 adminCmd.addCommand(addRelayerCmd)
 adminCmd.addCommand(removeRelayerCmd)
 adminCmd.addCommand(setThresholdCmd)
