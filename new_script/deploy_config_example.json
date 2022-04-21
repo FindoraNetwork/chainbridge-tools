@@ -1,0 +1,34 @@
+{
+    "NetWork": [
+        {
+            "name": "",
+            "Provider": "",
+            "endpoint": [],
+            "bridge": "",
+            "handler": ""
+        }
+        ...
+    ],
+    "Relayer": [
+        {
+            "name": "Relayer0",
+            "address": "",
+            "machine": ""
+        }
+        ...
+    ],
+    "Token": [
+        {
+            "name": "",
+            "resourceID": "",
+            "address": {
+                "Findora": "",
+                "BSC": "",
+                "Rospten": ""
+                ...
+            }
+        }
+        ...
+    ]
+
+}

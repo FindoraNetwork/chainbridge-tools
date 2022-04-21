@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: relayer
+  name: relayer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: relayer
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: relayer
+    spec:
+      initContainers:
+      - name: relayer-init
+        image: chainsafe/chainbridge:v1.1.5
+        args:
+          - accounts
+          - import
+          - --privateKey
+          - '{{Key}}'
+          - --password
+          - '{{KEYSTORE_PASSWORD}}'
+        volumeMounts:
+          - mountPath: /keys
+            name: keys
+      containers:
+      - name: relayer
+        image: chainsafe/chainbridge:v1.1.5
+        args:
+          - --config
+          - /config/config.json
+          - --verbosity
+          - info
+          - --latest
+          - --metrics
+          - --metricsPort
+          - "8000"
+        env:
+          - name: KEYSTORE_PASSWORD
+            value: '{{KEYSTORE_PASSWORD}}'
+        volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /keys
+            name: keys
+      restartPolicy: Always
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      volumes:
+        - name: config
+          configMap:
+            name: {{ConfigMap}}
+        - name: keys
+          emptyDir: {}

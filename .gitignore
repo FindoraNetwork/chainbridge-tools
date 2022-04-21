@@ -1,3 +1,5 @@
 .idea/
 node_modules/
 chainbridge-solidity/
+new_script/config/
+new_script/keys/

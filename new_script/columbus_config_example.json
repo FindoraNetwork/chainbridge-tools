@@ -1,0 +1,24 @@
+{
+    "NetWork": [
+        {
+            "name": "",
+            "Provider": "",
+            "bridge": ""
+        }
+        ...
+    ],
+    "Token": [
+        {
+            "name": "",
+            "resourceID": "",
+            "address": {
+                "Findora": "",
+                "BSC": "",
+                "Rospten": ""
+                ...
+            }
+        }
+        ...
+    ]
+
+}
