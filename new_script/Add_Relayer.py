@@ -118,14 +118,20 @@ def adminAddRelayer():
         tx_hash = sign_send_wait(w3, owner_acct, txn)
         print("{} adminAddRelayer transaction hash: {}".format(n['name'], tx_hash.hex()))
 
+def deploy():
+    r = config['Relayer'][-1]
+    r_dir = config_dir_path + "/{}".format(r['name'])
+    print(os.popen("kubectl cm {} --from-file={}".format(r['name'].lower(), r_dir + "/config.json")).read())
+    print(os.popen("kubectl apply -f {}".format(r_dir + "/relayer-deployment.yaml")).read())
+
 
 load_config()
 
-# focus_print("Generate Relayer key && Build config yaml")
-# build(genkey())
-
-
-# save_config()
-
-#debug
+focus_print("Generate Relayer key && Build config yaml")
+build(genkey())
+focus_print("call Bridge Contract adminAddRelayer for each Networks")
 adminAddRelayer()
+focus_print("Deployment Relayer In Kubernetes Cluster")
+deploy()
+
+save_config()
