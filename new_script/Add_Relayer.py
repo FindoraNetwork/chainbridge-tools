@@ -38,6 +38,12 @@ def save_config():
 def focus_print(text):
     print("\n\033[1;36;40m{}\033[0m".format(text)) # 高亮青色前景色换行输出
 
+def sign_send_wait(w3_obj, account_obj, txn):
+    signed_txn = account_obj.sign_transaction(txn)
+    tx_hash = w3_obj.eth.send_raw_transaction(signed_txn.rawTransaction)
+    w3_obj.eth.wait_for_transaction_receipt(tx_hash)
+    return tx_hash
+
 
 def genkey():
     i = len(config['Relayer'])
@@ -96,10 +102,30 @@ def build(privateKey):
     with open(r_dir + "/relayer-deployment.yaml", 'w') as f:
         f.write(k8s_template)
 
+def adminAddRelayer():
+    with open(owner_key_path, 'r') as f:
+        owner_acct = Web3().eth.account.from_key(Web3().eth.account.decrypt(f.read(), KEYSTORE_PASSWORD))
+
+    with open("contracts/Bridge.json") as f:
+        bridge_abi = json.load(f)['abi']
+
+    for n in config['NetWork']:
+        w3 = Web3(Web3.HTTPProvider(n['Provider']))
+        bridge_contract = w3.eth.contract(n['bridge'], abi=bridge_abi)
+
+        txn = bridge_contract.functions.adminAddRelayer(config['Relayer'][-1]['address']).buildTransaction({'from': owner_acct.address, 'nonce': w3.eth.getTransactionCount(owner_acct.address), "gasPrice": w3.eth.gas_price})
+        # txn = bridge_contract.functions.adminRemoveRelayer(config['Relayer'][-1]['address']).buildTransaction({'from': owner_acct.address, 'nonce': w3.eth.getTransactionCount(owner_acct.address), "gasPrice": w3.eth.gas_price})
+        tx_hash = sign_send_wait(w3, owner_acct, txn)
+        print("{} adminAddRelayer transaction hash: {}".format(n['name'], tx_hash.hex()))
+
+
 load_config()
 
-focus_print("Generate Relayer key && Build config yaml")
-build(genkey())
+# focus_print("Generate Relayer key && Build config yaml")
+# build(genkey())
 
 
-save_config()
+# save_config()
+
+#debug
+adminAddRelayer()
