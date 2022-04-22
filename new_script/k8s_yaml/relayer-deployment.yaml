@@ -16,6 +16,18 @@ spec:
       labels:
         app: relayer
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - relayer
+              topologyKey: topology.kubernetes.io/zone
       initContainers:
       - name: relayer-init
         image: chainsafe/chainbridge:v1.1.5
