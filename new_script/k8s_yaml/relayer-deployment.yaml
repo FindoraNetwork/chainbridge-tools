@@ -3,18 +3,19 @@ kind: Deployment
 metadata:
   labels:
     app: relayer
-  name: relayer
+  name: {{NAME}}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: relayer
+      name: {{NAME}}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         app: relayer
+        name: {{NAME}}
     spec:
       affinity:
         podAntiAffinity:
@@ -67,6 +68,6 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ConfigMap}}
+            name: {{NAME}}
         - name: keys
           emptyDir: {}

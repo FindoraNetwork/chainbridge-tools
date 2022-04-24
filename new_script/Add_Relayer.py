@@ -93,7 +93,7 @@ def build(privateKey):
         k8s_template = f.read()
     k8s_template = k8s_template.replace("{{Key}}", privateKey)
     k8s_template = k8s_template.replace("{{KEYSTORE_PASSWORD}}", KEYSTORE_PASSWORD)
-    k8s_template = k8s_template.replace("{{ConfigMap}}", r['name'].lower())
+    k8s_template = k8s_template.replace("{{NAME}}", r['name'].lower())
 
     r_dir = config_dir_path + "/{}".format(r['name'])
     os.mkdir(r_dir)
@@ -121,7 +121,7 @@ def adminAddRelayer():
 def deploy():
     r = config['Relayer'][-1]
     r_dir = config_dir_path + "/{}".format(r['name'])
-    print(os.popen("kubectl cm {} --from-file={}".format(r['name'].lower(), r_dir + "/config.json")).read())
+    print(os.popen("kubectl create cm {} --from-file={}".format(r['name'].lower(), r_dir + "/config.json")).read())
     print(os.popen("kubectl apply -f {}".format(r_dir + "/relayer-deployment.yaml")).read())
 
 
