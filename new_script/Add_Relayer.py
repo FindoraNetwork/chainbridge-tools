@@ -73,7 +73,7 @@ def build(privateKey):
             {
                 "name": n['name'],
                 "type": "ethereum",
-                "id": str(NetWork.index(n) + 1),
+                "id": str(NetWork.index(n)),
                 "endpoint": cur_endpoint,
                 "from": r['address'],
                 "opts": {
