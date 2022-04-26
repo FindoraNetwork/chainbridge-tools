@@ -3,7 +3,6 @@
 
 import os
 import json
-import random
 from web3 import Web3
 
 from config import *
@@ -23,48 +22,16 @@ def genkey():
     with open(key_dir_path + "/{}_keystore.json".format(r_name), 'w') as f:
         keystore = acct.encrypt(KEYSTORE_PASSWORD)
         json.dump(keystore,f, indent=4)
-    return acct.privateKey.hex()
+    # return acct.privateKey.hex()
 
-def build(privateKey):
-    Relayer = config.Relayer
-    NetWork = config.NetWork
-    r = Relayer[-1]
+def build():
+    r_name = config.Relayer[-1]['name']
 
-    out_json = { "Chains":[] }
-    for n in NetWork:
-        cur_endpoint = random.choice(n['endpoint'])
-        out_json['Chains'].append(
-            {
-                "name": n['name'],
-                "type": "ethereum",
-                "id": str(NetWork.index(n)),
-                "endpoint": cur_endpoint,
-                "from": r['address'],
-                "opts": {
-                    "bridge": n['bridge'],
-                    # "erc20Handler": "",
-                    # "erc721Handler": "",
-                    "genericHandler": n['handler'],
-                    "gasLimit": gasLimit,
-                    "maxGasPrice": maxGasPrice,
-                    "startBlock": "0",
-                    "http": str(not "https://" in cur_endpoint).lower()
-                }
-            }
-        )
-    
-    with open(k8s_template_path, 'r') as f:
-        k8s_template = f.read()
-    k8s_template = k8s_template.replace("{{Key}}", privateKey)
-    k8s_template = k8s_template.replace("{{KEYSTORE_PASSWORD}}", KEYSTORE_PASSWORD)
-    k8s_template = k8s_template.replace("{{NAME}}", r['name'].lower())
-
-    r_dir = config_dir_path + "/{}".format(r['name'])
+    r_dir = config_dir_path + "/{}".format(r_name)
     os.mkdir(r_dir)
-    with open(r_dir + "/config.json", 'w') as f:
-        json.dump(out_json,f, indent=4)
-    with open(r_dir + "/relayer-deployment.yaml", 'w') as f:
-        f.write(k8s_template)
+
+    Build_Relayer_Config(config, -1)
+    Build_Relayer_YAML(r_name)
 
 def adminAddRelayer():
     with open("contracts/Bridge.json") as f:
@@ -82,17 +49,19 @@ def adminAddRelayer():
         print("{} adminAddRelayer transaction hash: {}".format(n['name'], tx_hash.hex()))
 
 def deploy():
-    r = config.Relayer[-1]
-    r_dir = config_dir_path + "/{}".format(r['name'])
-    print(os.popen("kubectl create cm {} --from-file={}".format(r['name'].lower(), r_dir + "/config.json")).read())
+    r_name = config.Relayer[-1]['name']
+    r_dir = config_dir_path + "/{}".format(r_name )
+    print(os.popen("kubectl create cm {} --from-file={}".format(r_name .lower(), r_dir + "/config.json")).read())
     print(os.popen("kubectl apply -f {}".format(r_dir + "/relayer-deployment.yaml")).read())
 
 
 if __name__ == "__main__":
     config = Deploy_Config()
 
-    focus_print("Generate Relayer key && Build config yaml")
-    build(genkey())
+    focus_print("Generate New Relayer key")
+    genkey()
+    focus_print("Build New config and yaml")
+    build()
     focus_print("call Bridge Contract adminAddRelayer for each Networks")
     adminAddRelayer()
     focus_print("Deployment Relayer In Kubernetes Cluster")

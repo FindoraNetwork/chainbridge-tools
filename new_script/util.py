@@ -56,3 +56,55 @@ def Deploy_Contract(w3_obj, json_path, init_args):
     tx_receipt = w3_obj.eth.get_transaction_receipt(tx_hash)
 
     return tx_receipt.contractAddress
+
+def Build_Relayer_Config(config, index=None):
+    import random
+
+    Relayer = config.Relayer
+    NetWork = config.NetWork
+    
+    if index:
+        Relayer = [config.Relayer[index]]
+
+    for r in Relayer:
+        out_json = { "Chains":[] }
+        for n in NetWork:
+            cur_endpoint = random.choice(n['endpoint'])
+            out_json['Chains'].append(
+                {
+                    "name": n['name'],
+                    "type": "ethereum",
+                    "id": str(NetWork.index(n)),
+                    "endpoint": cur_endpoint,
+                    "from": r['address'],
+                    "opts": {
+                        "bridge": n['bridge'],
+                        # "erc20Handler": "",
+                        # "erc721Handler": "",
+                        "genericHandler": n['handler'],
+                        "gasLimit": gasLimit,
+                        "maxGasPrice": maxGasPrice,
+                        "startBlock": "0",
+                        "http": str(not "https://" in cur_endpoint).lower()
+                    }
+                }
+            )
+        r_dir = config_dir_path + "/{}".format(r['name'])
+        with open(r_dir + "/config.json", 'w') as f:
+            json.dump(out_json,f, indent=4)
+    
+def Build_Relayer_YAML(r_name):
+    with open(k8s_template_path, 'r') as f:
+        k8s_template = f.read()
+
+    with open(key_dir_path + "/{}_keystore.json".format(r_name), 'w') as f:
+        from web3 import Web3
+        privateKey = Web3().eth.account.from_key(Web3().eth.account.decrypt(f.read(), KEYSTORE_PASSWORD))
+
+    k8s_template = k8s_template.replace("{{Key}}", privateKey)
+    k8s_template = k8s_template.replace("{{KEYSTORE_PASSWORD}}", KEYSTORE_PASSWORD)
+    k8s_template = k8s_template.replace("{{NAME}}", r_name.lower())
+    
+    r_dir = config_dir_path + "/{}".format(r_name)
+    with open(r_dir + "/relayer-deployment.yaml", 'w') as f:
+        f.write(k8s_template)
