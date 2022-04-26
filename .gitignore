@@ -1,5 +1,7 @@
 .idea/
 node_modules/
 chainbridge-solidity/
+*.pyc
 new_script/config/
 new_script/keys/
+new_script/run_debug.sh
