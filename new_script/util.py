@@ -97,9 +97,10 @@ def Build_Relayer_YAML(r_name):
     with open(k8s_template_path, 'r') as f:
         k8s_template = f.read()
 
-    with open(key_dir_path + "/{}_keystore.json".format(r_name), 'w') as f:
+    with open(key_dir_path + "/{}_keystore.json".format(r_name), 'r') as f:
         from web3 import Web3
-        privateKey = Web3().eth.account.from_key(Web3().eth.account.decrypt(f.read(), KEYSTORE_PASSWORD))
+        acct = Web3().eth.account.from_key(Web3().eth.account.decrypt(f.read(), KEYSTORE_PASSWORD))
+        privateKey = acct.privateKey.hex()
 
     k8s_template = k8s_template.replace("{{Key}}", privateKey)
     k8s_template = k8s_template.replace("{{KEYSTORE_PASSWORD}}", KEYSTORE_PASSWORD)
