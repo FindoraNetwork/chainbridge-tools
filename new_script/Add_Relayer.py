@@ -37,15 +37,13 @@ def adminAddRelayer():
     with open("contracts/Bridge.json") as f:
         bridge_abi = json.load(f)['abi']
 
-    owner_acct = load_owner()
-
     for n in config.NetWork:
         w3 = Web3(Web3.HTTPProvider(n['Provider']))
         bridge_contract = w3.eth.contract(n['bridge'], abi=bridge_abi)
 
-        txn = bridge_contract.functions.adminAddRelayer(config.Relayer[-1]['address']).buildTransaction({'from': owner_acct.address, 'nonce': w3.eth.getTransactionCount(owner_acct.address), "gasPrice": w3.eth.gas_price})
+        func = bridge_contract.functions.adminAddRelayer(config.Relayer[-1]['address'])
         # txn = bridge_contract.functions.adminRemoveRelayer(config.Relayer[-1]['address']).buildTransaction({'from': owner_acct.address, 'nonce': w3.eth.getTransactionCount(owner_acct.address), "gasPrice": w3.eth.gas_price})
-        tx_hash = sign_send_wait(w3, owner_acct, txn)
+        tx_hash = sign_send_wait(w3, func)
         print("{} adminAddRelayer transaction hash: {}".format(n['name'], tx_hash.hex()))
 
 def deploy():

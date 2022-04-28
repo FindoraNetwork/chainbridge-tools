@@ -20,7 +20,8 @@
     "Token": [
         {
             "name": "",
-            "resourceID": "",
+            "warp": "",
+            "asset": "",
             "address": {
                 "Findora": "",
                 "BSC": "",

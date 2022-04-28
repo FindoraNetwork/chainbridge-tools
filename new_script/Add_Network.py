@@ -22,11 +22,9 @@ def adminAddRelayer(bridge_address):
 
     bridge_contract = w3.eth.contract(bridge_address, abi=bridge_abi)
 
-    owner_acct = load_owner()
-
     for r in config.Relayer:
-        txn = bridge_contract.functions.adminAddRelayer(r['address']).buildTransaction({'from': owner_acct.address, 'nonce': w3.eth.getTransactionCount(owner_acct.address), "gasPrice": w3.eth.gas_price})
-        tx_hash = sign_send_wait(w3, owner_acct, txn)
+        func = bridge_contract.functions.adminAddRelayer(r['address'])
+        tx_hash = sign_send_wait(w3, func)
         print("{} adminAddRelayer transaction hash: {}".format(r['name'], tx_hash.hex()))
 
 

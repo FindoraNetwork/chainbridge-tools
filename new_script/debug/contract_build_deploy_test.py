@@ -5,25 +5,26 @@ import solcx
 import json
 import os
 
-# os.chdir("/home/platform/chainbridge-solidity/contracts")
+os.chdir("/home/platform/chainbridge-solidity/node_modules/@openzeppelin/contracts")
 
-# compiled = solcx.compile_files(
-#     ["Bridge.sol"],
-#     output_values=['abi', 'bin'],
-#     solc_version="0.6.4"
-# )["Bridge.sol:Bridge"]
+compiled = solcx.compile_files(
+    ["token/ERC20/ERC20.sol"],
+    output_values=['abi', 'bin'],
+    solc_version="0.6.4",
+    allow_paths=["/home/platform/chainbridge-solidity/node_modules/@openzeppelin/contracts"]
+)['token/ERC20/ERC20.sol:ERC20']
 
-# compiled['bytecode'] = "0x" + compiled['bin']
-# del(compiled['bin'])
+compiled['bytecode'] = "0x" + compiled['bin']
+del(compiled['bin'])
 
-# print(compiled.keys())
+print(compiled.keys())
 
-# with open("/home/platform/chainbridge-tools/new_script/contracts/test_out.json", 'w') as f:
-#     json.dump(compiled,f, indent=4)
+with open("/home/platform/chainbridge-tools/new_script/contracts/ERC20.json", 'w') as f:
+    json.dump(compiled,f, indent=4)
 
 # ============================================================================
 
-w3 = Web3(Web3.HTTPProvider("http://172.20.0.202:8545"))
+# w3 = Web3(Web3.HTTPProvider("http://172.20.0.202:8545"))
 # w3 = Web3(Web3.HTTPProvider("http://172.20.0.201:8545"))
 # print(w3.eth.accounts)
 
@@ -43,10 +44,10 @@ w3 = Web3(Web3.HTTPProvider("http://172.20.0.202:8545"))
 # print(w3.eth.get_balance(owner_acct.address))
 
 
-with open("/home/platform/chainbridge-tools/new_script/contracts/test_out.json") as f:
-    contract_json = json.load(f)
-    bridge_abi = contract_json['abi']
-    bridge_bin = contract_json['bytecode']
+# with open("/home/platform/chainbridge-tools/new_script/contracts/test_out.json") as f:
+#     contract_json = json.load(f)
+#     bridge_abi = contract_json['abi']
+#     bridge_bin = contract_json['bytecode']
 
 # bridge_contract = w3.eth.contract(abi=bridge_abi, bytecode=bridge_bin)
 
@@ -59,5 +60,5 @@ with open("/home/platform/chainbridge-tools/new_script/contracts/test_out.json")
 # print(tx_receipt.contractAddress)
 # print(w3.eth.get_balance(owner_acct.address))
 
-bridge_contract = w3.eth.contract(Web3.toChecksumAddress("0x17A97707f8f817eCb59D05177ec4B114d3aeE187"), abi=bridge_abi)
-print(bridge_contract.functions._chainID().call())
+# bridge_contract = w3.eth.contract(Web3.toChecksumAddress("0x17A97707f8f817eCb59D05177ec4B114d3aeE187"), abi=bridge_abi)
+# print(bridge_contract.functions._chainID().call())

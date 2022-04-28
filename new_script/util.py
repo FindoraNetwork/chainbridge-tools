@@ -25,6 +25,17 @@ class Deploy_Config():
             config_json = {'NetWork': self.NetWork, 'Relayer': self.Relayer, 'Token': self.Token}
             json.dump(config_json,f, indent=4)
 
+    def checkout_name(self, i_name, i_list):
+        for i in i_list:
+            if i['name'] == i_name:
+                return (i_list.index(i), i)
+
+    def get_Network(self, n_name):
+        return self.checkout_name(n_name, self.NetWork)
+
+    def get_Token(self, t_name):
+        return self.checkout_name(t_name, self.Token)
+
 
 def load_owner():
     with open(owner_key_path, 'r') as f:
@@ -35,8 +46,12 @@ def load_owner():
 def focus_print(text):
     print("\n\033[1;36;40m{}\033[0m".format(text)) # 高亮青色前景色换行输出
 
-def sign_send_wait(w3_obj, account_obj, txn):
-    signed_txn = account_obj.sign_transaction(txn)
+# def sign_send_wait(w3_obj, account_obj, txn):
+def sign_send_wait(w3_obj, func):
+    owner_acct = load_owner()
+    txn = func.buildTransaction({'from': owner_acct.address, 'nonce': w3_obj.eth.getTransactionCount(owner_acct.address), "gasPrice": w3_obj.eth.gas_price})
+
+    signed_txn = owner_acct.sign_transaction(txn)
     tx_hash = w3_obj.eth.send_raw_transaction(signed_txn.rawTransaction)
     w3_obj.eth.wait_for_transaction_receipt(tx_hash)
     return tx_hash
@@ -48,11 +63,9 @@ def Deploy_Contract(w3_obj, json_path, init_args):
         bin = contract_json['bytecode']
 
     contract = w3_obj.eth.contract(abi=abi, bytecode=bin)
-    
-    owner_acct = load_owner()
 
-    txn= contract.constructor(*init_args).buildTransaction({'from': owner_acct.address, 'nonce': w3_obj.eth.getTransactionCount(owner_acct.address), "gasPrice": w3_obj.eth.gas_price})
-    tx_hash = sign_send_wait(w3_obj, owner_acct, txn)
+    func = contract.constructor(*init_args)
+    tx_hash = sign_send_wait(w3_obj, func)
     tx_receipt = w3_obj.eth.get_transaction_receipt(tx_hash)
 
     return tx_receipt.contractAddress

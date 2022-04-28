@@ -17,3 +17,7 @@ gasLimit = "1000000"
 maxGasPrice = "20000000"
 
 KEYSTORE_PASSWORD = "passw0rd"
+
+uni_resourceID = "0x000000000000000000000000000000c76ebe4a02bbc34786d860b355f5111301"
+
+mnemonic_file_path = "/home/platform/findora_wallet/Mnemonic_Big_qa02"
