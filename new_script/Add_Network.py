@@ -59,7 +59,9 @@ if __name__ == "__main__":
             ],
             "bridge": bridge_address,
             "handler": handler_address,
-            "deck": deck_address
+            "columbus": {
+                "deck": deck_address
+            }
         }
     )
 

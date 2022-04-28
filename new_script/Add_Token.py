@@ -24,14 +24,14 @@ def adminSetTokenId(n, tokenId, tokenAddress, isBurn):
         asset_abi = json.load(f)['abi']
 
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
-    asset_address = n['asset']
+    asset_address = n['columbus']['asset']
     asset_contract = w3.eth.contract(asset_address, abi=asset_abi)
 
     func = asset_contract.functions.adminSetResource(tokenId, tokenAddress, isBurn)
     tx_hash = sign_send_wait(w3, func)
     print("{} adminSetTokenId {} transaction hash: {}".format(n['name'], tokenAddress, tx_hash.hex()))
 
-def deployWarpTokenContract(w3, contract_json_path):
+def deployWrapTokenContract(w3, contract_json_path):
     return Deploy_Contract(w3, contract_json_path, ())
 
 def fn_asset_create(memo, decimal):
@@ -41,45 +41,45 @@ def fn_asset_create(memo, decimal):
     endpoint = config.NetWork[0]['Provider'].split('8545')[0][:-1]
     os.popen("fn setup --owner-mnemonic-path {} --serv-addr {} 2>/dev/null".format(mnemonic_file_path, endpoint)).read()
 
-    # code format: base64(bytes32("warpToken0000000000000000000Name"))
-    code = base64.b64encode(bytes("warpToken"+memo.zfill(23), encoding='utf-8'))
+    # code format: base64(bytes32("wrapToken0000000000000000000Name"))
+    code = base64.b64encode(bytes("wrapToken"+memo.zfill(23), encoding='utf-8'))
     os.popen("fn asset --create --memo {} --decimal {} --code {} --transferable 2>/dev/null".format(mnemonic_file_path, decimal, code)).read()
     return code
 
-def adminSetAssetMaping(w3, prism_address, _frc20, _asset, _isBurn, _decimal):
+def adminSetAssetMaping(w3, prism_asset_address, _frc20, _asset, _isBurn, _decimal):
     with open("contracts/PrismXXAsset.json") as f:
-        prism_abi = json.load(f)['abi']
+        prism_asset_abi = json.load(f)['abi']
 
-    prism_contract = w3.eth.contract(prism_address, abi=prism_abi)
+    prism_asset_contract = w3.eth.contract(prism_asset_address, abi=prism_asset_abi)
 
-    func = prism_contract.functions.adminSetAssetMaping(_frc20, _asset, _isBurn, _decimal)
+    func = prism_asset_contract.functions.adminSetAssetMaping(_frc20, _asset, _isBurn, _decimal)
     tx_hash = sign_send_wait(w3, func)
     print("adminSetAssetMaping {} transaction hash: {}".format(_frc20, tx_hash.hex()))
 
 
-def func_warptoken(args):
+def func_wraptoken(args):
     # In Findora Network, Index 0
     n = config.NetWork[0]
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
 
-    focus_print("Deployment WarpToken Contract")
-    warp_address = deployWarpTokenContract(w3, args.contract_json_path)
+    focus_print("Deployment wrapToken Contract")
+    wrap_address = deployWrapTokenContract(w3, args.contract_json_path)
 
     with open(args.contract_json_path) as f:
-        warp_abi = json.load(f)['abi']
-    warp_contract = w3.eth.contract(warp_address, abi=warp_abi)
-    decimals = warp_contract.functions.decimals().call()
+        wrap_abi = json.load(f)['abi']
+    wrap_contract = w3.eth.contract(wrap_address, abi=wrap_abi)
+    decimals = wrap_contract.functions.decimals().call()
 
     focus_print("Run fn asset create")
     asset_code = fn_asset_create(args.name, decimals)
 
     focus_print("Call PrismXXAsset.adminSetAssetMaping")
-    adminSetAssetMaping(w3, n['prism'], warp_address, asset_code, True, decimals)
+    adminSetAssetMaping(w3, n['prism']['asset'], wrap_address, asset_code, True, decimals)
 
     config.Token.append(
         {
             "name": args.name,
-            "warp": warp_address,
+            "wrap": wrap_address,
             "asset": asset_code,
             "address": {}
         }
@@ -104,10 +104,10 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest='Add_Token SubCommand')
     subparsers.required = True
 
-    parser_warptoken = subparsers.add_parser('warptoken', help='Create New warpToken in Privacy Network')
-    parser_warptoken.add_argument('name', help="The Token Name for want to create wrapToken")
-    parser_warptoken.add_argument('contract_json_path', help="warpToken Contract compiled json file path")
-    parser_warptoken.set_defaults(func=func_warptoken)
+    parser_wraptoken = subparsers.add_parser('wraptoken', help='Create New wrapToken in Privacy Network')
+    parser_wraptoken.add_argument('name', help="The Token Name for want to create wrapToken")
+    parser_wraptoken.add_argument('contract_json_path', help="wrapToken Contract compiled json file path")
+    parser_wraptoken.set_defaults(func=func_wraptoken)
 
     parser_token = subparsers.add_parser('token', help="manual input Token Address for one Network")
     parser_token.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")

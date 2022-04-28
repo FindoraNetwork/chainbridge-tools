@@ -5,7 +5,18 @@
             "Provider": "",
             "endpoint": [],
             "bridge": "",
-            "handler": ""
+            "handler": "",
+            "prism": {
+                "bridge": "",
+                "asset": ""
+            },
+            "columbus": {
+                "deck": "",
+                "asset": "",
+                "relayer": "",
+                "simbridge": "",
+                "wrap": ""
+            }
         }
         ...
     ],
@@ -20,7 +31,7 @@
     "Token": [
         {
             "name": "",
-            "warp": "",
+            "wrap": "",
             "asset": "",
             "address": {
                 "Findora": "",
