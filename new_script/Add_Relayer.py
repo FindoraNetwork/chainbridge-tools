@@ -34,8 +34,7 @@ def build():
     Build_Relayer_YAML(r_name)
 
 def adminAddRelayer():
-    with open("contracts/Bridge.json") as f:
-        bridge_abi = json.load(f)['abi']
+    bridge_abi = load_abi("Bridge")
 
     for n in config.NetWork:
         w3 = Web3(Web3.HTTPProvider(n['Provider']))

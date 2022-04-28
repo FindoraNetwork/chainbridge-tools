@@ -2,7 +2,6 @@
 # coding=utf-8
 
 from web3 import Web3
-import json
 
 from config import *
 from util import *
@@ -10,7 +9,7 @@ from util import *
 from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusDeck, deployColumbusAsset
 
 def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxAddress, _columbusWrapTokensAddress, _bridgeAddress):
-    return Deploy_Contract(w3, "contracts/ColumbusRelayer.json", (
+    return Deploy_Contract(w3, "ColumbusRelayer", (
         _genericHandlerAddress,
         _prismxxAddress,
         _columbusWrapTokensAddress,
@@ -19,10 +18,10 @@ def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxAddress, _columbus
     ))
 
 def deployColumbusSimBridge(w3, _prismBridgeAddress):
-    return Deploy_Contract(w3, "contracts/ColumbusSimBridge.json", (_prismBridgeAddress,))
+    return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress,))
 
 def deployColumbusWrap(w3):
-    return Deploy_Contract(w3, "contracts/ColumbusWrapTokens.json", ())
+    return Deploy_Contract(w3, "ColumbusWrap", ())
 
 
 def func_privacy(args):

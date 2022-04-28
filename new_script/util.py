@@ -60,6 +60,11 @@ def error_print(text):
 def focus_print(text):
     print("\n\033[1;36;40m{}\033[0m".format(text)) # 高亮青色前景色换行输出
 
+
+def load_abi(contract_name):
+    with open(contract_json_path[contract_name], 'r') as f:
+        return json.load(f)['abi']
+
 # def sign_send_wait(w3_obj, account_obj, txn):
 def sign_send_wait(w3_obj, func):
     owner_acct = load_owner()
@@ -70,8 +75,8 @@ def sign_send_wait(w3_obj, func):
     w3_obj.eth.wait_for_transaction_receipt(tx_hash)
     return tx_hash
 
-def Deploy_Contract(w3_obj, json_path, init_args):
-    with open(json_path, 'r') as f:
+def Deploy_Contract(w3_obj, contract_name, init_args):
+    with open(contract_json_path[contract_name], 'r') as f:
         contract_json = json.load(f)
         abi = contract_json['abi']
         bin = contract_json['bytecode']

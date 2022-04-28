@@ -2,27 +2,24 @@
 # coding=utf-8
 
 from web3 import Web3
-import json
 
 from config import *
 from util import *
 
 def deployBridgeContract(w3, chainID):
-    return Deploy_Contract(w3, "contracts/Bridge.json", (chainID, [], 1, 0, 100))
+    return Deploy_Contract(w3, "Bridge", (chainID, [], 1, 0, 100))
 
 def deployGenericHandler(w3, bridge_address):
-    return Deploy_Contract(w3, "contracts/GenericHandler.json", (bridge_address, [], [], [], []))
+    return Deploy_Contract(w3, "GenericHandler", (bridge_address, [], [], [], []))
 
 def deployColumbusDeck(w3, genericHandlerAddress):
-    return Deploy_Contract(w3, "contracts/ColumDeck.json", (genericHandlerAddress,))
+    return Deploy_Contract(w3, "ColumbusDeck", (genericHandlerAddress,))
 
 def deployColumbusAsset(w3):
-    return Deploy_Contract(w3, "contracts/ColumbusAsset.json", ())
+    return Deploy_Contract(w3, "ColumbusAsset", ())
 
 def adminAddRelayer(bridge_address):
-    with open("contracts/Bridge.json") as f:
-        bridge_abi = json.load(f)['abi']
-
+    bridge_abi = load_abi("Bridge")
     bridge_contract = w3.eth.contract(bridge_address, abi=bridge_abi)
 
     for r in config.Relayer:

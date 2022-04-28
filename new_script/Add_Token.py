@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # coding=utf-8
 
-import json
 from web3 import Web3
 
 from config import *
 from util import *
 
 def adminSetResource(n, tokenAddress):
-    with open("contracts/Bridge.json") as f:
-        bridge_abi = json.load(f)['abi']
+    bridge_abi = load_abi("Bridge")
 
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
     bridge_address = n['bridge']
@@ -20,8 +18,7 @@ def adminSetResource(n, tokenAddress):
     print("{} adminSetResource {} transaction hash: {}".format(n['name'], tokenAddress, tx_hash.hex()))
 
 def adminSetTokenId_ColumbusAsset(n, tokenId, tokenAddress, isBurn):
-    with open("contracts/ColumbusAsset.json") as f:
-        columbus_asset_abi = json.load(f)['abi']
+    columbus_asset_abi = load_abi("ColumbusAsset")
 
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
     columbus_asset_address = n['columbus']['asset']
@@ -32,7 +29,7 @@ def adminSetTokenId_ColumbusAsset(n, tokenId, tokenAddress, isBurn):
     print("{} adminSetTokenId {} transaction hash: {}".format(n['name'], tokenAddress, tx_hash.hex()))
 
 def deployWrapTokenContract(w3, name, symbol, decimal):
-    return Deploy_Contract(w3, "contracts/WrapToken.json", (name, symbol, decimal))
+    return Deploy_Contract(w3, "WrapToken", (name, symbol, decimal))
 
 def fn_asset_create(memo, decimal):
     import os
@@ -47,9 +44,7 @@ def fn_asset_create(memo, decimal):
     return code
 
 def adminSetAssetMaping(w3, prism_asset_address, _frc20, _asset, _isBurn, _decimal):
-    with open("contracts/PrismXXAsset.json") as f:
-        prism_asset_abi = json.load(f)['abi']
-
+    prism_asset_abi = load_abi("PrismXXAsset")
     prism_asset_contract = w3.eth.contract(prism_asset_address, abi=prism_asset_abi)
 
     func = prism_asset_contract.functions.adminSetAssetMaping(_frc20, _asset, _isBurn, _decimal)
@@ -57,9 +52,7 @@ def adminSetAssetMaping(w3, prism_asset_address, _frc20, _asset, _isBurn, _decim
     print("adminSetAssetMaping {} transaction hash: {}".format(_frc20, tx_hash.hex()))
 
 def adminSetTokenId_ColumbusWrap(w3, columbus_wrap_address, tokenId, tokenAddress, _isFRA):
-    with open("contracts/ColumbusWrapTokens.json") as f:
-        columbus_wrap_abi = json.load(f)['abi']
-
+    columbus_wrap_abi = load_abi("ColumbusWrap")
     columbus_wrap_contract = w3.eth.contract(columbus_wrap_address, abi=columbus_wrap_abi)
 
     func = columbus_wrap_contract.functions.adminSetResource(tokenId, tokenAddress, _isFRA)
