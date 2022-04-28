@@ -34,7 +34,10 @@ class Deploy_Config():
         return self.checkout_name(n_name, self.NetWork)
 
     def get_Token(self, t_name):
-        return self.checkout_name(t_name, self.Token)
+        # The reason is solidity mapping data structure
+        # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
+        t_id, t = self.checkout_name(t_name, self.Token)
+        return (t_id + 1, t)
 
 
 def load_owner():

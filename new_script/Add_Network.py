@@ -16,6 +16,9 @@ def deployGenericHandler(bridge_address):
 def deployColumbusDeck(genericHandlerAddress):
     return Deploy_Contract(w3, "contracts/ColumDeck.json", (genericHandlerAddress,))
 
+def deployColumbusAsset():
+    return Deploy_Contract(w3, "contracts/ColumbusAsset.json", ())
+
 def adminAddRelayer(bridge_address):
     with open("contracts/Bridge.json") as f:
         bridge_abi = json.load(f)['abi']
@@ -47,6 +50,8 @@ if __name__ == "__main__":
     handler_address = deployGenericHandler(bridge_address)
     focus_print("Deployment ColumbusDeck Contract")
     deck_address = deployColumbusDeck(handler_address)
+    focus_print("Deployment ColumbusAsset Contract")
+    asset_address = deployColumbusAsset()
     focus_print("adminAddRelayer for Existing Relayer")
     adminAddRelayer(bridge_address)
 
@@ -60,7 +65,8 @@ if __name__ == "__main__":
             "bridge": bridge_address,
             "handler": handler_address,
             "columbus": {
-                "deck": deck_address
+                "deck": deck_address,
+                "asset": asset_address,
             }
         }
     )

@@ -19,20 +19,20 @@ def adminSetResource(n, tokenAddress):
     tx_hash = sign_send_wait(w3, func)
     print("{} adminSetResource {} transaction hash: {}".format(n['name'], tokenAddress, tx_hash.hex()))
 
-def adminSetTokenId(n, tokenId, tokenAddress, isBurn):
+def adminSetTokenId_ColumbusAsset(n, tokenId, tokenAddress, isBurn):
     with open("contracts/ColumbusAsset.json") as f:
-        asset_abi = json.load(f)['abi']
+        columbus_asset_abi = json.load(f)['abi']
 
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
-    asset_address = n['columbus']['asset']
-    asset_contract = w3.eth.contract(asset_address, abi=asset_abi)
+    columbus_asset_address = n['columbus']['asset']
+    columbus_asset_contract = w3.eth.contract(columbus_asset_address, abi=columbus_asset_abi)
 
-    func = asset_contract.functions.adminSetResource(tokenId, tokenAddress, isBurn)
+    func = columbus_asset_contract.functions.adminSetResource(tokenId, tokenAddress, isBurn)
     tx_hash = sign_send_wait(w3, func)
     print("{} adminSetTokenId {} transaction hash: {}".format(n['name'], tokenAddress, tx_hash.hex()))
 
-def deployWrapTokenContract(w3, contract_json_path):
-    return Deploy_Contract(w3, contract_json_path, ())
+def deployWrapTokenContract(w3, name, symbol, decimal):
+    return Deploy_Contract(w3, "contracts/WrapToken.json", (name, symbol, decimal))
 
 def fn_asset_create(memo, decimal):
     import os
@@ -56,6 +56,16 @@ def adminSetAssetMaping(w3, prism_asset_address, _frc20, _asset, _isBurn, _decim
     tx_hash = sign_send_wait(w3, func)
     print("adminSetAssetMaping {} transaction hash: {}".format(_frc20, tx_hash.hex()))
 
+def adminSetTokenId_ColumbusWrap(w3, columbus_wrap_address, tokenId, tokenAddress, _isFRA):
+    with open("contracts/ColumbusWrapTokens.json") as f:
+        columbus_wrap_abi = json.load(f)['abi']
+
+    columbus_wrap_contract = w3.eth.contract(columbus_wrap_address, abi=columbus_wrap_abi)
+
+    func = columbus_wrap_contract.functions.adminSetResource(tokenId, tokenAddress, _isFRA)
+    tx_hash = sign_send_wait(w3, func)
+    print("adminSetTokenId {} transaction hash: {}".format(tokenAddress, tx_hash.hex()))
+
 
 def func_wraptoken(args):
     # In Findora Network, Index 0
@@ -63,18 +73,19 @@ def func_wraptoken(args):
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
 
     focus_print("Deployment wrapToken Contract")
-    wrap_address = deployWrapTokenContract(w3, args.contract_json_path)
-
-    with open(args.contract_json_path) as f:
-        wrap_abi = json.load(f)['abi']
-    wrap_contract = w3.eth.contract(wrap_address, abi=wrap_abi)
-    decimals = wrap_contract.functions.decimals().call()
+    wrap_address = deployWrapTokenContract(w3, args.name, args.symbol, args.decimal)
 
     focus_print("Run fn asset create")
-    asset_code = fn_asset_create(args.name, decimals)
+    asset_code = fn_asset_create(args.name, args.decimal)
 
     focus_print("Call PrismXXAsset.adminSetAssetMaping")
-    adminSetAssetMaping(w3, n['prism']['asset'], wrap_address, asset_code, True, decimals)
+    adminSetAssetMaping(w3, n['prism']['asset'], wrap_address, asset_code, True, args.decimal)
+
+    focus_print("Call ColumbusWrap.adminSetTokenId")
+    # The reason is solidity mapping data structure
+    # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
+    tokenId = len(config.Token) + 1
+    adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, wrap_address, False)
 
     config.Token.append(
         {
@@ -85,6 +96,23 @@ def func_wraptoken(args):
         }
     )
 
+def func_wFRA(args):
+    # In Findora Network, Index 0
+    n = config.NetWork[0]
+    w3 = Web3(Web3.HTTPProvider(n['Provider']))
+
+    focus_print("Call ColumbusWrap.adminSetTokenId")
+    # The reason is solidity mapping data structure
+    # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
+    tokenId = len(config.Token) + 1
+    adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, "0x0000000000000000000000000000000000000000", True)
+
+    config.Token.append(
+        {
+            "name": "FRA",
+            "address": {}
+        }
+    )
 
 def func_token(args):
     n_id, n = config.get_Network(args.network)
@@ -93,7 +121,7 @@ def func_token(args):
     focus_print("Call Bridge.adminSetResource")
     adminSetResource(n, args.address)
     focus_print("Call ColumbusAsset.adminSetTokenId")
-    adminSetTokenId(n, t_id, args.address, args.burn)
+    adminSetTokenId_ColumbusAsset(n, t_id, args.address, args.burn)
 
     config.Token[t_id]['address'][args.network] = args.address
 
@@ -106,8 +134,12 @@ if __name__ == "__main__":
 
     parser_wraptoken = subparsers.add_parser('wraptoken', help='Create New wrapToken in Privacy Network')
     parser_wraptoken.add_argument('name', help="The Token Name for want to create wrapToken")
-    parser_wraptoken.add_argument('contract_json_path', help="wrapToken Contract compiled json file path")
+    parser_wraptoken.add_argument('symbol', help="wrapToken symbol")
+    parser_wraptoken.add_argument('decimal', help="wrapToken decimal")
     parser_wraptoken.set_defaults(func=func_wraptoken)
+
+    parser_wFRA = subparsers.add_parser('wFRA', help='If Add wFRA, Use this SubCommand.')
+    parser_wFRA.set_defaults(func=func_wFRA)
 
     parser_token = subparsers.add_parser('token', help="manual input Token Address for one Network")
     parser_token.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
