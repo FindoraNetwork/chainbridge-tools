@@ -151,5 +151,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config = Deploy_Config()
+    config.check_0_exist()
     args.func(args)
     config.save()

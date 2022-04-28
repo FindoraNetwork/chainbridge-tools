@@ -39,12 +39,23 @@ class Deploy_Config():
         t_id, t = self.checkout_name(t_name, self.Token)
         return (t_id + 1, t)
 
+    def check_0_exist(self):
+        if len(self.NetWork) == 0:
+            error_print("Please Init Findora Privacy Network First!!!")
+            os._exit(1)
+        if self.NetWork[0]['name'] != 'Findora':
+            error_print("First Network not is Findora. Config Format ERROR!!!")
+            os._exit(1)
+            
 
 def load_owner():
     with open(owner_key_path, 'r') as f:
         from web3 import Web3
         owner_acct = Web3().eth.account.from_key(Web3().eth.account.decrypt(f.read(), KEYSTORE_PASSWORD))
         return owner_acct
+
+def error_print(text):
+    print("\n\033[1;31;40m{}\033[0m".format(text))
 
 def focus_print(text):
     print("\n\033[1;36;40m{}\033[0m".format(text)) # 高亮青色前景色换行输出

@@ -7,16 +7,16 @@ import json
 from config import *
 from util import *
 
-def deployBridgeContract(chainID):
+def deployBridgeContract(w3, chainID):
     return Deploy_Contract(w3, "contracts/Bridge.json", (chainID, [], 1, 0, 100))
 
-def deployGenericHandler(bridge_address):
+def deployGenericHandler(w3, bridge_address):
     return Deploy_Contract(w3, "contracts/GenericHandler.json", (bridge_address, [], [], [], []))
 
-def deployColumbusDeck(genericHandlerAddress):
+def deployColumbusDeck(w3, genericHandlerAddress):
     return Deploy_Contract(w3, "contracts/ColumDeck.json", (genericHandlerAddress,))
 
-def deployColumbusAsset():
+def deployColumbusAsset(w3):
     return Deploy_Contract(w3, "contracts/ColumbusAsset.json", ())
 
 def adminAddRelayer(bridge_address):
@@ -43,15 +43,16 @@ if __name__ == "__main__":
     w3 = Web3(Web3.HTTPProvider(Network_Provider))
 
     config = Deploy_Config()
+    config.check_0_exist()
 
     focus_print("Deployment Bridge Contract")
-    bridge_address = deployBridgeContract(len(config.NetWork))
+    bridge_address = deployBridgeContract(w3, len(config.NetWork))
     focus_print("Deployment GenericHandler Contract")
-    handler_address = deployGenericHandler(bridge_address)
+    handler_address = deployGenericHandler(w3, bridge_address)
     focus_print("Deployment ColumbusDeck Contract")
-    deck_address = deployColumbusDeck(handler_address)
+    deck_address = deployColumbusDeck(w3, handler_address)
     focus_print("Deployment ColumbusAsset Contract")
-    asset_address = deployColumbusAsset()
+    asset_address = deployColumbusAsset(w3)
     focus_print("adminAddRelayer for Existing Relayer")
     adminAddRelayer(bridge_address)
 

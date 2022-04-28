@@ -21,6 +21,7 @@ def reload_all():
         
 if __name__ == "__main__":
     config = Deploy_Config()
+    config.check_0_exist()
 
     focus_print("Rebuild All Relayer config")
     rebuild_all()
