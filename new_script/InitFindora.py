@@ -38,7 +38,7 @@ def func_privacy(args):
     focus_print("Deployment ColumbusSimBridge Contract")
     columbus_simbridge_address = deployColumbusSimBridge(w3, args.prism_bridge)
 
-    config.NetWork[0] = {
+    config.NetWork.append({
         "name": "Findora",
         "Provider": args.provider,
         "endpoint": [
@@ -55,16 +55,16 @@ def func_privacy(args):
             "simbridge": columbus_simbridge_address,
             "wrap": columbus_wrap_address
         }
-    }
+    })
 
 def func_destination(args):
     config.check_0_exist()
     w3 = Web3(Web3.HTTPProvider(config.NetWork[0]['Provider']))
 
-    focus_print("Deployment ColumbusDeck Contract")
-    deck_address = deployColumbusDeck(w3, config.NetWork[0]['handler'])
     focus_print("Deployment ColumbusAsset Contract")
     asset_address = deployColumbusAsset(w3)
+    focus_print("Deployment ColumbusDeck Contract")
+    deck_address = deployColumbusDeck(w3, config.NetWork[0]['handler'], asset_address)
 
     config.NetWork[0]["columbus"]["deck"] = deck_address
     config.NetWork[0]["columbus"]["asset"] = asset_address

@@ -87,6 +87,14 @@ def Deploy_Contract(w3_obj, contract_name, init_args):
     tx_hash = sign_send_wait(w3_obj, func)
     tx_receipt = w3_obj.eth.get_transaction_receipt(tx_hash)
 
+    try:
+        if not w3_obj.isChecksumAddress(tx_receipt.contractAddress):
+            raise
+    except:
+        error_print("contract deployment ERROR!!!")
+        print(tx_receipt)
+        os._exit(1)
+
     return tx_receipt.contractAddress
 
 def Build_Relayer_Config(config, index=None):

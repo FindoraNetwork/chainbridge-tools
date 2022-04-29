@@ -12,8 +12,8 @@ def deployBridgeContract(w3, chainID):
 def deployGenericHandler(w3, bridge_address):
     return Deploy_Contract(w3, "GenericHandler", (bridge_address, [], [], [], []))
 
-def deployColumbusDeck(w3, genericHandlerAddress):
-    return Deploy_Contract(w3, "ColumbusDeck", (genericHandlerAddress,))
+def deployColumbusDeck(w3, genericHandlerAddress, columbusAssetAddress):
+    return Deploy_Contract(w3, "ColumbusDeck", (genericHandlerAddress, columbusAssetAddress))
 
 def deployColumbusAsset(w3):
     return Deploy_Contract(w3, "ColumbusAsset", ())
@@ -46,10 +46,10 @@ if __name__ == "__main__":
     bridge_address = deployBridgeContract(w3, len(config.NetWork))
     focus_print("Deployment GenericHandler Contract")
     handler_address = deployGenericHandler(w3, bridge_address)
-    focus_print("Deployment ColumbusDeck Contract")
-    deck_address = deployColumbusDeck(w3, handler_address)
     focus_print("Deployment ColumbusAsset Contract")
     asset_address = deployColumbusAsset(w3)
+    focus_print("Deployment ColumbusDeck Contract")
+    deck_address = deployColumbusDeck(w3, handler_address, asset_address)
     focus_print("adminAddRelayer for Existing Relayer")
     adminAddRelayer(bridge_address)
 
