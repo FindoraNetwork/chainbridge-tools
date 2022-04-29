@@ -31,7 +31,7 @@
     "Token": [
         {
             "name": "",
-            "wrap": "",
+            "isWrap": Bool,
             "asset": "",
             "address": {
                 "Findora": "",

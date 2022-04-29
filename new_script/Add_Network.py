@@ -18,6 +18,20 @@ def deployColumbusDeck(w3, genericHandlerAddress, columbusAssetAddress):
 def deployColumbusAsset(w3):
     return Deploy_Contract(w3, "ColumbusAsset", ())
 
+def adminSetGenericResource_Destination(w3, bridge_address, handler_address, deck_address):
+    bridge_abi = load_abi("Bridge")
+    bridge_contract = w3.eth.contract(bridge_address, abi=bridge_abi)
+
+    func = bridge_contract.functions.adminSetGenericResource(
+        handler_address,
+        uni_resourceID,
+        deck_address,
+        load_functionSig("ColumbusDeck","deposit"),
+        load_functionSig("ColumbusDeck","withdraw")
+    )
+    tx_hash = sign_send_wait(w3, func)
+    print("adminSetGenericResource {} transaction hash: {}".format(deck_address, tx_hash.hex()))
+
 def adminAddRelayer(bridge_address):
     bridge_abi = load_abi("Bridge")
     bridge_contract = w3.eth.contract(bridge_address, abi=bridge_abi)
@@ -50,6 +64,10 @@ if __name__ == "__main__":
     asset_address = deployColumbusAsset(w3)
     focus_print("Deployment ColumbusDeck Contract")
     deck_address = deployColumbusDeck(w3, handler_address, asset_address)
+
+    focus_print("Call Bridge.adminSetGenericResource")
+    adminSetGenericResource_Destination(w3, bridge_address, handler_address, deck_address)
+
     focus_print("adminAddRelayer for Existing Relayer")
     adminAddRelayer(bridge_address)
 

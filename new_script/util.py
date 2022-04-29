@@ -65,6 +65,13 @@ def load_abi(contract_name):
     with open(contract_json_path[contract_name], 'r') as f:
         return json.load(f)['abi']
 
+def load_functionSig(contract_name, function_name):
+    with open(contract_json_path[contract_name], 'r') as f:
+        hashes = json.load(f)['hashes']
+    for k,v in hashes.items():
+        if function_name in k:
+            return v
+
 # def sign_send_wait(w3_obj, account_obj, txn):
 def sign_send_wait(w3_obj, func):
     owner_acct = load_owner()
@@ -149,3 +156,10 @@ def Build_Relayer_YAML(r_name):
     r_dir = config_dir_path + "/{}".format(r_name)
     with open(r_dir + "/relayer-deployment.yaml", 'w') as f:
         f.write(k8s_template)
+
+# debug
+if __name__ == "__main__":
+    print(load_functionSig("ColumbusRelayer","withdrawToOtherChainCallback"))
+    print(load_functionSig("ColumbusRelayer","depositFromOtherChain"))
+    print(load_functionSig("ColumbusDeck","deposit"))
+    print(load_functionSig("ColumbusDeck","withdraw"))
