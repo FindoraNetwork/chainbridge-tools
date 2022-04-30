@@ -46,7 +46,9 @@ class Deploy_Config():
         if self.NetWork[0]['name'] != 'Findora':
             error_print("First Network not is Findora. Config Format ERROR!!!")
             os._exit(1)
-            
+
+# All Script Unified config Object
+config = Deploy_Config()
 
 def load_owner():
     with open(owner_key_path, 'r') as f:

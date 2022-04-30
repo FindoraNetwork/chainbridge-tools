@@ -53,7 +53,6 @@ if __name__ == "__main__":
     Network_Provider = args.provider
     w3 = Web3(Web3.HTTPProvider(Network_Provider))
 
-    config = Deploy_Config()
     config.check_0_exist()
 
     focus_print("Deployment Bridge Contract")

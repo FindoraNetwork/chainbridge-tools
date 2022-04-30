@@ -53,7 +53,6 @@ def deploy():
 
 
 if __name__ == "__main__":
-    config = Deploy_Config()
     config.check_0_exist()
 
     focus_print("Generate New Relayer key")

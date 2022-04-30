@@ -8,18 +8,43 @@ import base64
 from config import *
 from util import *
 
-def adminSetTokenId_ColumbusAsset(n, tokenId, tokenAddress, isBurn):
-    columbus_asset_abi = load_abi("ColumbusAsset")
-
+def Findora_w3():
+    # In Findora Network, Index 0
+    n = config.NetWork[0]
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
-    columbus_asset_address = n['columbus']['asset']
-    columbus_asset_contract = w3.eth.contract(columbus_asset_address, abi=columbus_asset_abi)
+    return (n, w3)
 
-    func = columbus_asset_contract.functions.adminSetResource(tokenId, tokenAddress, isBurn)
+def get_decimals(token_address):
+    n, w3 = Findora_w3()
+    erc20_abi = load_abi("ERC20")
+    token_contract = w3.eth.contract(token_address, abi=erc20_abi)
+    return token_contract.functions.decimals().call()
+
+def adminSetTokenId_uni(tokenId, tokenAddress, isPrivacy, network_name=None, isBurn=False, isFRA=False):
+    if not isPrivacy:
+        n_id, n = config.get_Network(network_name)
+        w3 = Web3(Web3.HTTPProvider(n['Provider']))
+
+        columbus_asset_abi = load_abi("ColumbusAsset")
+        columbus_asset_address = n['columbus']['asset']
+        columbus_asset_contract = w3.eth.contract(columbus_asset_address, abi=columbus_asset_abi)
+
+        func = columbus_asset_contract.functions.adminSetResource(tokenId, tokenAddress, isBurn)
+
+    else:
+        n, w3 = Findora_w3()
+
+        columbus_wrap_abi = load_abi("ColumbusWrap")
+        columbus_wrap_address = n['columbus']['wrap']
+        columbus_wrap_contract = w3.eth.contract(columbus_wrap_address, abi=columbus_wrap_abi)
+
+        func = columbus_wrap_contract.functions.adminSetTokenId(tokenId, tokenAddress, isFRA, isBurn)
+
     tx_hash = sign_send_wait(w3, func)
     print("{} adminSetTokenId {} transaction hash: {}".format(n['name'], tokenAddress, tx_hash.hex()))
 
-def deployWrapTokenContract(w3, name, symbol, decimal):
+def deployWrapTokenContract(name, symbol, decimal):
+    n, w3 = Findora_w3()
     return Deploy_Contract(w3, "WrapToken", (name, symbol, int(decimal)))
 
 def fn_asset_create(memo, decimal):
@@ -31,42 +56,33 @@ def fn_asset_create(memo, decimal):
     os.popen("fn asset --create --memo {} --decimal {} --code {} --transferable 2>/dev/null".format(mnemonic_file_path, decimal, code)).read()
     return code
 
-def adminSetAssetMaping(w3, prism_asset_address, _frc20, _asset, _isBurn, _decimal):
+def adminSetAssetMaping(_frc20, _asset, _isBurn, _decimal):
+    n, w3 = Findora_w3()
+
     prism_asset_abi = load_abi("PrismXXAsset")
-    prism_asset_contract = w3.eth.contract(prism_asset_address, abi=prism_asset_abi)
+    prism_asset_contract = w3.eth.contract(n['prism']['asset'], abi=prism_asset_abi)
 
     func = prism_asset_contract.functions.adminSetAssetMaping(_frc20, base64.b64decode(_asset), _isBurn, int(_decimal))
     tx_hash = sign_send_wait(w3, func)
     print("adminSetAssetMaping {} transaction hash: {}".format(_frc20, tx_hash.hex()))
 
-def adminSetTokenId_ColumbusWrap(w3, columbus_wrap_address, tokenId, tokenAddress, _isFRA, _isBurn):
-    columbus_wrap_abi = load_abi("ColumbusWrap")
-    columbus_wrap_contract = w3.eth.contract(columbus_wrap_address, abi=columbus_wrap_abi)
-
-    func = columbus_wrap_contract.functions.adminSetTokenId(tokenId, tokenAddress, _isFRA, _isBurn)
-    tx_hash = sign_send_wait(w3, func)
-    print("adminSetTokenId {} transaction hash: {}".format(tokenAddress, tx_hash.hex()))
-
 
 def func_burn(args):
-    # In Findora Network, Index 0
-    n = config.NetWork[0]
-    w3 = Web3(Web3.HTTPProvider(n['Provider']))
-
     focus_print("Deployment wrapToken Contract")
-    wrap_address = deployWrapTokenContract(w3, args.name, args.symbol, args.decimal)
+    wrap_address = deployWrapTokenContract(args.name, args.symbol, args.decimal)
 
     focus_print("Run fn asset create")
     asset_code = fn_asset_create(args.name, args.decimal)
 
     focus_print("Call PrismXXAsset.adminSetAssetMaping")
-    adminSetAssetMaping(w3, n['prism']['asset'], wrap_address, asset_code, True, args.decimal)
+    adminSetAssetMaping(wrap_address, asset_code, True, args.decimal)
 
     focus_print("Call ColumbusWrap.adminSetTokenId")
     # The reason is solidity mapping data structure
     # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
     tokenId = len(config.Token) + 1
-    adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, wrap_address, False, True)
+    # adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, wrap_address, False, True)
+    adminSetTokenId_uni(tokenId, wrap_address, isPrivacy=True, isBurn=True)
 
     config.Token.append(
         {
@@ -80,25 +96,20 @@ def func_burn(args):
     )
 
 def func_lock(args):
-    # In Findora Network, Index 0
-    n = config.NetWork[0]
-    w3 = Web3(Web3.HTTPProvider(n['Provider']))
-
-    erc20_abi = load_abi("ERC20")
-    token_contract = w3.eth.contract(args.address, abi=erc20_abi)
-    decimals = token_contract.functions.decimals().call()
+    decimals = get_decimals(args.address)
 
     focus_print("Run fn asset create")
     asset_code = fn_asset_create(args.name, decimals)
 
     focus_print("Call PrismXXAsset.adminSetAssetMaping")
-    adminSetAssetMaping(w3, n['prism']['asset'], args.address, asset_code, True, decimals)
+    adminSetAssetMaping(args.address, asset_code, False, decimals)
 
     focus_print("Call ColumbusWrap.adminSetTokenId")
     # The reason is solidity mapping data structure
     # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
     tokenId = len(config.Token) + 1
-    adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, args.address, False, False)
+    # adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, args.address, False, False)
+    adminSetTokenId_uni(tokenId, args.address, isPrivacy=True, isBurn=False)
 
     config.Token.append(
         {
@@ -112,15 +123,12 @@ def func_lock(args):
     )
 
 def func_wFRA(args):
-    # In Findora Network, Index 0
-    n = config.NetWork[0]
-    w3 = Web3(Web3.HTTPProvider(n['Provider']))
-
     focus_print("Call ColumbusWrap.adminSetTokenId")
     # The reason is solidity mapping data structure
     # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
     tokenId = len(config.Token) + 1
-    adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, "0x0000000000000000000000000000000000000000", True, False)
+    # adminSetTokenId_ColumbusWrap(w3, n['columbus']['wrap'], tokenId, "0x0000000000000000000000000000000000000000", True, False)
+    adminSetTokenId_uni(tokenId, "0x0000000000000000000000000000000000000000", isPrivacy=True, isBurn=False, isFRA=True)
 
     config.Token.append(
         {
@@ -130,13 +138,13 @@ def func_wFRA(args):
     )
 
 def func_destination(args):
-    n_id, n = config.get_Network(args.network)
     t_id, t = config.get_Token(args.name)
 
     focus_print("Call ColumbusAsset.adminSetTokenId")
-    adminSetTokenId_ColumbusAsset(n, t_id, args.address, args.burn)
+    # adminSetTokenId_ColumbusAsset(n, t_id, args.address, args.burn)
+    adminSetTokenId_uni(t_id, args.address, isPrivacy=False, network_name=args.network, isBurn=args.burn)
 
-    config.Token[t_id]['address'][args.network] = args.address
+    config.Token[t_id-1]['address'][args.network] = args.address
 
 
 if __name__ == "__main__":
@@ -172,7 +180,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    config = Deploy_Config()
     config.check_0_exist()
     args.func(args)
     config.save()

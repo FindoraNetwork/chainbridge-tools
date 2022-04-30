@@ -85,6 +85,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    config = Deploy_Config()
     func_privacy(args)
     config.save()
