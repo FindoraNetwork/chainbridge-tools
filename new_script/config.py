@@ -31,6 +31,8 @@ contract_json_path = {
     "ColumbusSimBridge": "contracts/ColumbusSimBridge.json",
     "ColumbusWrap": "contracts/ColumbusWrapTokens.json",
     "PrismXXAsset": "contracts/PrismXXAsset.json",
+    "PrismXXLedger": "contracts/PrismXXLedger.json",
+    "PrismXXBridge": "contracts/PrismXXBridge.json",
     "WrapToken": "contracts/WrapToken.json",
     "ERC20": "contracts/ERC20.json"
 }

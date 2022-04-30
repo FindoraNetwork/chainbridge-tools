@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # coding=utf-8
 
-from unicodedata import decimal
 from web3 import Web3
-import base64
 
 from config import *
 from util import *
