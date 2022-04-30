@@ -17,8 +17,8 @@ def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxAddress, _columbus
         _bridgeAddress
     ))
 
-def deployColumbusSimBridge(w3, _prismBridgeAddress):
-    return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress,))
+def deployColumbusSimBridge(w3, _prismBridgeAddress, _prismBridgeLedger):
+    return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
 
 def deployColumbusWrap(w3):
     return Deploy_Contract(w3, "ColumbusWrap", ())
@@ -50,7 +50,7 @@ def func_privacy(args):
     focus_print("Deployment ColumbusRelayer Contract")
     columbus_relayer_address = deployColumbusRelayer(w3, handler_address, args.prism_bridge, columbus_wrap_address, bridge_address)
     focus_print("Deployment ColumbusSimBridge Contract")
-    columbus_simbridge_address = deployColumbusSimBridge(w3, args.prism_bridge)
+    columbus_simbridge_address = deployColumbusSimBridge(w3, args.prism_bridge, args.prism_ledger)
 
     focus_print("Call Bridge.adminSetGenericResource")
     adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbus_relayer_address)
@@ -82,6 +82,7 @@ if __name__ == "__main__":
     parser.add_argument('provider', help='Findora Privacy Network Provider')
     parser.add_argument('--prism-bridge', help='PrismXXBridge Contract Address', required=True)
     parser.add_argument('--prism-asset', help='PrismXXAsset Contract Address', required=True)
+    parser.add_argument('--prism-ledger', help='PrismXXLedger Contract Address', required=True)
 
     args = parser.parse_args()
 
