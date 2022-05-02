@@ -50,6 +50,7 @@ type Opts struct {
 	MaxGasPrice        string `json:"maxGasPrice,omitempty"`
 	GasMultiplier      string `json:"gasMultiplier,omitempty"`
 	StartBlock         string `json:"startBlock"`
+	ExecuteWatchLimit  string `json:"executeWatchLimit"`
 	BlockConfirmations string `json:"blockConfirmations"`
 	Http               string `json:"http,omitempty"`
 }
@@ -66,6 +67,7 @@ type EthChainConfig struct {
 	MaxGasPrice        string   `json:"maxGasPrice"`
 	GasMultiplier      string   `json:"gasMultiplier"`
 	StartBlock         string   `json:"startBlock"`
+	ExecuteWatchLimit  string   `json:"executeWatchLimit"`
 	BlockConfirmations string   `json:"blockConfirmations"`
 	Http               string   `json:"http"`
 	Relayers           []string `json:"relayers"`
@@ -122,6 +124,7 @@ func constructEthChainConfig(cfg EthChainConfig, relayer string) RawChainConfig 
 			MaxGasPrice:        cfg.MaxGasPrice,
 			GasMultiplier:      cfg.GasMultiplier,
 			StartBlock:         cfg.StartBlock,
+			ExecuteWatchLimit:  cfg.ExecuteWatchLimit,
 			BlockConfirmations: cfg.BlockConfirmations,
 			Http:               cfg.Http,
 		},
