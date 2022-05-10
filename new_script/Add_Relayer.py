@@ -48,7 +48,7 @@ def adminAddRelayer():
 def deploy():
     r_name = config.Relayer[-1]['name']
     r_dir = config_dir_path + "/{}".format(r_name )
-    print(os.popen("kubectl create cm {} --from-file={}".format(r_name .lower(), r_dir + "/config.json")).read())
+    print(os.popen("kubectl create cm {} --from-file={}".format(r_name.lower(), r_dir + "/config.json")).read())
     print(os.popen("kubectl apply -f {}".format(r_dir + "/relayer-deployment.yaml")).read())
 
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     build()
     focus_print("call Bridge Contract adminAddRelayer for each Networks")
     adminAddRelayer()
-    focus_print("Deployment Relayer In Kubernetes Cluster")
-    deploy()
+    # focus_print("Deployment Relayer In Kubernetes Cluster")
+    # deploy()
 
     config.save()

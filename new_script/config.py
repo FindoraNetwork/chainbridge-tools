@@ -8,13 +8,16 @@ if not os.path.exists(config_dir_path):
 key_dir_path = os.getcwd() + "/keys"
 if not os.path.exists(key_dir_path):
     os.mkdir(key_dir_path)
+kustomize_dir_path = config_dir_path + "/kustomize"
+if not os.path.exists(kustomize_dir_path):
+    os.mkdir(kustomize_dir_path)
 
 deploy_config_path = config_dir_path + "/deploy_config.json"
 owner_key_path = key_dir_path + "/owner_keystore.json"
 k8s_template_path = "k8s_yaml/relayer-deployment.yaml"
 
-gasLimit = "1000000"
-maxGasPrice = "20000000"
+gasLimit = 1000000
+maxGasPrice = 200000000000
 
 KEYSTORE_PASSWORD = "passw0rd"
 
@@ -29,7 +32,6 @@ contract_json_path = {
     "ColumbusAsset": "contracts/ColumbusAsset.json",
     "ColumbusRelayer": "contracts/ColumbusRelayer.json",
     "ColumbusSimBridge": "contracts/ColumbusSimBridge.json",
-    "ColumbusWrap": "contracts/ColumbusWrapTokens.json",
     "PrismXXAsset": "contracts/PrismXXAsset.json",
     "PrismXXLedger": "contracts/PrismXXLedger.json",
     "PrismXXBridge": "contracts/PrismXXBridge.json",

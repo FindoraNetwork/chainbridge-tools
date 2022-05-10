@@ -18,26 +18,15 @@ def assetInfos(_frc20):
     result.append(_frc20)
     return result
 
-def tokenAddress_uni(tokenId, isPrivacy, network_name=None):
-    if not isPrivacy:
-        n_id, n = config.get_Network(network_name)
-        w3 = Web3(Web3.HTTPProvider(n['Provider']))
+def tokenAddress_uni(tokenId, network_name):
+    n_id, n = config.get_Network(network_name)
+    w3 = Web3(Web3.HTTPProvider(n['Provider']))
 
-        columbus_asset_abi = load_abi("ColumbusAsset")
-        columbus_asset_address = n['columbus']['asset']
-        columbus_asset_contract = w3.eth.contract(columbus_asset_address, abi=columbus_asset_abi)
+    columbus_asset_abi = load_abi("ColumbusAsset")
+    columbus_asset_address = n['columbus']['asset']
+    columbus_asset_contract = w3.eth.contract(columbus_asset_address, abi=columbus_asset_abi)
 
-        result = columbus_asset_contract.functions.tokenAddress(tokenId).call()
-
-    else:
-        n, w3 = Findora_w3()
-
-        columbus_wrap_abi = load_abi("ColumbusWrap")
-        columbus_wrap_address = n['columbus']['wrap']
-        columbus_wrap_contract = w3.eth.contract(columbus_wrap_address, abi=columbus_wrap_abi)
-
-        result = columbus_wrap_contract.functions.tokenAddress(tokenId).call()
-
+    result = columbus_asset_contract.functions.tokenAddress(tokenId).call()
     result.insert(0, tokenId)
     return result
 
@@ -53,10 +42,10 @@ def func_update_lock(args):
     adminSetAssetMaping(new_address, t["asset"], False, decimals)
     print("After: {}".format(assetInfos(new_address)))
 
-    focus_print("Call ColumbusWrap.adminSetTokenId")
-    print("Before: {}".format(tokenAddress_uni(t_id, isPrivacy=True)))
-    adminSetTokenId_uni(t_id, new_address, isPrivacy=True, isBurn=False)
-    print("After: {}".format(tokenAddress_uni(t_id, isPrivacy=True)))
+    focus_print("Call ColumbusAsset.adminSetTokenId")
+    print("Before: {}".format(tokenAddress_uni(t_id, network_name='Findora')))
+    adminSetTokenId_uni(t_id, new_address, network_name='Findora', isBurn=False)
+    print("After: {}".format(tokenAddress_uni(t_id, network_name='Findora')))
 
     config.Token[t_id-1]["address"]["Findora"] = new_address
 
@@ -64,9 +53,9 @@ def func_destination(args):
     t_id, t = config.get_Token(args.name)
 
     focus_print("Call ColumbusAsset.adminSetTokenId")
-    print("Before: {}".format(tokenAddress_uni(t_id, isPrivacy=False, network_name=args.network)))
-    adminSetTokenId_uni(t_id, args.address, isPrivacy=False, network_name=args.network, isBurn=args.burn)
-    print("After: {}".format(tokenAddress_uni(t_id, isPrivacy=False, network_name=args.network)))
+    print("Before: {}".format(tokenAddress_uni(t_id, network_name=args.network)))
+    adminSetTokenId_uni(t_id, args.address, network_name=args.network, isBurn=args.burn)
+    print("After: {}".format(tokenAddress_uni(t_id, network_name=args.network)))
 
     config.Token[t_id-1]['address'][args.network] = args.address
 

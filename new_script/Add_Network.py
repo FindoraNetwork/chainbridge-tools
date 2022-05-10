@@ -32,7 +32,7 @@ def adminSetGenericResource_Destination(w3, bridge_address, handler_address, dec
     tx_hash = sign_send_wait(w3, func)
     print("adminSetGenericResource {} transaction hash: {}".format(deck_address, tx_hash.hex()))
 
-def adminAddRelayer(bridge_address):
+def adminAddRelayer(w3, bridge_address):
     bridge_abi = load_abi("Bridge")
     bridge_contract = w3.eth.contract(bridge_address, abi=bridge_abi)
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     adminSetGenericResource_Destination(w3, bridge_address, handler_address, deck_address)
 
     focus_print("adminAddRelayer for Existing Relayer")
-    adminAddRelayer(bridge_address)
+    adminAddRelayer(w3, bridge_address)
 
     config.NetWork.append(
         {
@@ -81,7 +81,7 @@ if __name__ == "__main__":
             "handler": handler_address,
             "columbus": {
                 "deck": deck_address,
-                "asset": asset_address,
+                "asset": asset_address
             }
         }
     )

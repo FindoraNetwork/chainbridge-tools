@@ -106,6 +106,11 @@ def Deploy_Contract(w3_obj, contract_name, init_args):
 
     return tx_receipt.contractAddress
 
+def get_block_number(n):
+    from web3 import Web3
+    w3 = Web3(Web3.HTTPProvider(n['Provider']))
+    return w3.eth.get_block_number()
+
 def Build_Relayer_Config(config, index=None):
     import random
 
@@ -118,12 +123,13 @@ def Build_Relayer_Config(config, index=None):
     for r in Relayer:
         out_json = { "Chains":[] }
         for n in NetWork:
+            n_id = NetWork.index(n)
             cur_endpoint = random.choice(n['endpoint'])
             out_json['Chains'].append(
                 {
                     "name": n['name'],
                     "type": "ethereum",
-                    "id": str(NetWork.index(n)),
+                    "id": str(n_id),
                     "endpoint": cur_endpoint,
                     "from": r['address'],
                     "opts": {
@@ -131,10 +137,11 @@ def Build_Relayer_Config(config, index=None):
                         # "erc20Handler": "",
                         # "erc721Handler": "",
                         "genericHandler": n['handler'],
-                        "gasLimit": gasLimit,
-                        "maxGasPrice": maxGasPrice,
-                        "startBlock": "0",
-                        "http": str(not "https://" in cur_endpoint).lower()
+                        "gasLimit": str(gasLimit),
+                        "maxGasPrice": str(maxGasPrice),
+                        "startBlock": str(get_block_number(n)),
+                        "blockConfirmations": "3" if n_id == 0 else "15",
+                        "http": "true"
                     }
                 }
             )

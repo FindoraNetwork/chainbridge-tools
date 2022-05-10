@@ -6,22 +6,21 @@ from web3 import Web3
 from config import *
 from util import *
 
-from Add_Network import deployBridgeContract, deployGenericHandler
+from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusAsset
 
-def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxAddress, _columbusWrapTokensAddress, _bridgeAddress):
+def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress):
+    _genericHandlerResourceId = uni_resourceID
     return Deploy_Contract(w3, "ColumbusRelayer", (
         _genericHandlerAddress,
         _prismxxAddress,
-        _columbusWrapTokensAddress,
-        uni_resourceID,
+        _prismLedgerAddress,
+        _columbusAssetAddress,
+        _genericHandlerResourceId,
         _bridgeAddress
     ))
 
 def deployColumbusSimBridge(w3, _prismBridgeAddress, _prismBridgeLedger):
     return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
-
-def deployColumbusWrap(w3):
-    return Deploy_Contract(w3, "ColumbusWrap", ())
 
 def adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbus_relayer_address):
     bridge_abi = load_abi("Bridge")
@@ -75,10 +74,10 @@ def func_columbus(args):
     bridge_address = deployBridgeContract(w3, 0)
     focus_print("Deployment GenericHandler Contract")
     handler_address = deployGenericHandler(w3, bridge_address)
-    focus_print("Deployment ColumbusWrap Contract")
-    columbus_wrap_address = deployColumbusWrap(w3)
+    focus_print("Deployment ColumbusAsset Contract")
+    asset_address = deployColumbusAsset(w3)
     focus_print("Deployment ColumbusRelayer Contract")
-    columbus_relayer_address = deployColumbusRelayer(w3, handler_address, prism_bridge, columbus_wrap_address, bridge_address)
+    columbus_relayer_address = deployColumbusRelayer(w3, handler_address, prism_bridge, prism_ledger, asset_address, bridge_address)
     focus_print("Deployment ColumbusSimBridge Contract")
     columbus_simbridge_address = deployColumbusSimBridge(w3, prism_bridge, prism_ledger)
 
@@ -101,7 +100,7 @@ def func_columbus(args):
         "columbus": {
             "relayer": columbus_relayer_address,
             "simbridge": columbus_simbridge_address,
-            "wrap": columbus_wrap_address
+            "asset": asset_address
         }
     }
 
