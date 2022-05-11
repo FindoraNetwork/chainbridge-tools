@@ -38,8 +38,17 @@ def adminSetTokenId_uni(tokenId, tokenAddress, network_name, isBurn=False, isFRA
 
 def deployWrapTokenContract(name, symbol, decimal):
     n, w3 = Findora_w3()
-    _minter = n["columbus"]["relayer"]
+    _minter = n["prism"]["ledger"]
     return Deploy_Contract(w3, "WrapToken", (name, symbol, int(decimal), _minter))
+
+def adminSetMinter_Relayer(wrap_address):
+    n, w3 = Findora_w3()
+    wrap_abi = load_abi("WrapToken")
+    wrap_contract = w3.eth.contract(wrap_address, abi=wrap_abi)
+    _minter = n["columbus"]["relayer"]
+    func = wrap_contract.functions.adminSetMinter(_minter)
+    tx_hash = sign_send_wait(w3, func)
+    print("adminSetMinter {} transaction hash: {}".format(_minter, tx_hash.hex()))
 
 def fn_asset_create(memo, decimal):
     endpoint = config.NetWork[0]['Provider'].split('8545')[0][:-1]
@@ -64,6 +73,8 @@ def adminSetAssetMaping(_frc20, _asset, _isBurn, _decimal):
 def func_burn(args):
     focus_print("Deployment wrapToken Contract")
     wrap_address = deployWrapTokenContract(args.name, args.symbol, args.decimal)
+    focus_print("warpToken.adminSetMinter To ColumbusRelayer")
+    adminSetMinter_Relayer(wrap_address)
 
     focus_print("Run fn asset create")
     asset_code = fn_asset_create(args.name, args.decimal)

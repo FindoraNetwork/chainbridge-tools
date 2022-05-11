@@ -5,56 +5,60 @@ import solcx
 import json
 import os
 
-print(os.popen('su - ys -c "cd ~/ys-contracts && git pull"').read())
+def pull_and_build():
+    print(os.popen('su - ys -c "cd ~/ys-contracts && git pull"').read())
 
-# os.chdir("/home/platform/chainbridge-solidity/node_modules/@openzeppelin/contracts")
+    # os.chdir("/home/platform/chainbridge-solidity/node_modules/@openzeppelin/contracts")
 
-# compiled = solcx.compile_files(
-#     ["token/ERC20/ERC20.sol"],
-#     output_values=['abi'],
-#     solc_version="0.6.4",
-#     allow_paths=["/home/platform/chainbridge-solidity/node_modules/@openzeppelin/contracts"]
-# )['token/ERC20/ERC20.sol:ERC20']
+    # compiled = solcx.compile_files(
+    #     ["token/ERC20/ERC20.sol"],
+    #     output_values=['abi'],
+    #     solc_version="0.6.4",
+    #     allow_paths=["/home/platform/chainbridge-solidity/node_modules/@openzeppelin/contracts"]
+    # )['token/ERC20/ERC20.sol:ERC20']
 
-# print(compiled.keys())
+    # print(compiled.keys())
 
-# with open("/home/platform/chainbridge-tools/new_script/contracts/ERC20.json", 'w') as f:
-#     json.dump(compiled,f, indent=4)
+    # with open("/home/platform/chainbridge-tools/new_script/contracts/ERC20.json", 'w') as f:
+    #     json.dump(compiled,f, indent=4)
 
-os.chdir("/home/ys/ys-contracts/contracts")
+    pwd = os.getcwd()
+    os.chdir("/home/ys/ys-contracts/contracts")
 
-sol_files = []
-for i in os.listdir("."):
-    if ".sol" in i and i != "Greeter.sol":
-        sol_files.append(i)
+    sol_files = []
+    for i in os.listdir("."):
+        if ".sol" in i and i != "Greeter.sol":
+            sol_files.append(i)
 
-compiled = solcx.compile_files(
-    sol_files,
-    output_values=['abi', 'bin', 'hashes'],
-    solc_version="0.8.13",
-    allow_paths=["/home/ys/ys-contracts/contracts"]
-)
+    compiled = solcx.compile_files(
+        sol_files,
+        output_values=['abi', 'bin', 'hashes'],
+        solc_version="0.8.13",
+        allow_paths=["/home/ys/ys-contracts/contracts"]
+    )
 
-# key_list = ['{}:{}'.format(i, i.split(".sol")[0]) for i in sol_files ]
-key_list = []
-for i in sol_files:
-    if i == "wToken.sol":
-        key_list.append("wToken.sol:WrapToken")
-        continue
-    key_list.append('{}:{}'.format(i, i.split(".sol")[0]))
+    # key_list = ['{}:{}'.format(i, i.split(".sol")[0]) for i in sol_files ]
+    key_list = []
+    for i in sol_files:
+        if i == "wToken.sol":
+            key_list.append("wToken.sol:WrapToken")
+            continue
+        key_list.append('{}:{}'.format(i, i.split(".sol")[0]))
 
-# print(key_list)
+    # print(key_list)
+    os.chdir(pwd)    
 
-for i in key_list:
-    compiled_item = compiled[i]
-    compiled_item['bytecode'] = "0x" + compiled_item['bin']
-    del(compiled_item['bin'])
+    for i in key_list:
+        compiled_item = compiled[i]
+        compiled_item['bytecode'] = "0x" + compiled_item['bin']
+        del(compiled_item['bin'])
 
-# # print(compiled.keys())
+        with open("contracts/{}.json".format(i.split(':')[1]), 'w') as f:
+            json.dump(compiled_item,f, indent=4)
 
-    with open("/home/platform/chainbridge-tools/new_script/contracts/{}.json".format(i.split(':')[1]), 'w') as f:
-        json.dump(compiled_item,f, indent=4)
 
+if __name__ == '__main__':
+    pull_and_build()
 # ============================================================================
 
 # w3 = Web3(Web3.HTTPProvider("http://172.20.0.202:8545"))
