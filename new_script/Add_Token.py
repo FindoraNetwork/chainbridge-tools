@@ -135,7 +135,9 @@ def func_wFRA(args):
     config.Token.append(
         {
             "name": "FRA",
-            "address": {}
+            "address": {
+                "Findora": "0x0000000000000000000000000000000000000000"
+            }
         }
     )
 
