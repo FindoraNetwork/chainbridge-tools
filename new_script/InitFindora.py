@@ -8,11 +8,11 @@ from util import *
 
 from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusAsset
 
-def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress):
+def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress):
     _genericHandlerResourceId = uni_resourceID
     return Deploy_Contract(w3, "ColumbusRelayer", (
         _genericHandlerAddress,
-        _prismxxAddress,
+        _prismxxBridgeAddress,
         _prismLedgerAddress,
         _columbusAssetAddress,
         _genericHandlerResourceId,
@@ -36,11 +36,22 @@ def adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbu
     tx_hash = sign_send_wait(w3, func)
     print("adminSetGenericResource {} transaction hash: {}".format(columbus_relayer_address, tx_hash.hex()))
 
+def deployPrismXXBridge(w3, _proxy_contract):
+    return Deploy_Contract(w3, "PrismXXBridge", (_proxy_contract,))
+
 def deployPrismXXAsset(w3):
     return Deploy_Contract(w3, "PrismXXAsset", ())
 
 def deployPrismXXLedger(w3, _bridge, _asset):
     return Deploy_Contract(w3, "PrismXXLedger", (_bridge, _asset))
+
+def Set_PrismProxy(w3, prism_proxy_address, _prismBridgeAddress):
+    prism_proxy_abi = load_abi("PrismProxy")
+    prism_proxy_contract = w3.eth.contract(prism_proxy_address, abi=prism_proxy_abi)
+
+    func = prism_proxy_contract.functions.adminSetPrismBridgeAddress(_prismBridgeAddress)
+    tx_hash = sign_send_wait(w3, func)
+    print("adminSetPrismBridgeAddress {} transaction hash: {}".format(_prismBridgeAddress, tx_hash.hex()))
 
 def Set_PrismXXBridge(w3, prism_bridge_address, _asset_contract, _ledger_contract):
     prism_bridge_abi = load_abi("PrismXXBridge")
@@ -111,10 +122,14 @@ def func_columbus(args):
 
 def func_prism(args):
     provider = args.provider
-    prism_bridge = args.prism_bridge
+    prism_proxy = args.prism_proxy
 
     w3 = Web3(Web3.HTTPProvider(provider))
 
+    focus_print("Deployment PrismXXBridge Contract")
+    prism_bridge = deployPrismXXBridge(w3, prism_proxy)
+    focus_print("call PrismProxy.adminSetPrismBridgeAddress")
+    Set_PrismProxy(w3, prism_proxy, prism_bridge)
     focus_print("Deployment PrismXXAsset Contract")
     prism_asset = deployPrismXXAsset(w3)
     focus_print("Deployment PrismXXLedger Contract")
@@ -160,7 +175,7 @@ if __name__ == "__main__":
 
     parser_prism = subparsers.add_parser('prism', help='Init Prism Project in Findora Privacy Network')
     parser_prism.add_argument('--provider', help='Findora Privacy Network Provider', required=True)
-    parser_prism.add_argument('--prism-bridge', help='PrismXXBridge Contract Address', required=True)
+    parser_prism.add_argument('--prism-proxy', help='PrismProxy System Contract Address', required=True)
     parser_prism.set_defaults(func=func_prism)
 
     args = parser.parse_args()
