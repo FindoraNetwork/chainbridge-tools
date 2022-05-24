@@ -15,8 +15,12 @@
                 "deck": "",
                 "asset": "",
                 "relayer": "",
-                "simbridge": "",
-                "wrap": ""
+                "simbridge": ""
+            },
+            "Frontend": {
+                "Provider_WS": "",
+                "Explorer": "",
+                "ChainId": ""
             }
         }
         ...
