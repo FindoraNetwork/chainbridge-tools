@@ -2,8 +2,8 @@
 
 ### Installation
 
-git clone https://github.com/ChainSafe/chainbridge-deploy \
-&& cd chainbridge-deploy/cb-sol-cli \
+git clone -b v1.0.3 --depth 1 https://github.com/FindoraNetwork/chainbridge-tools \
+&& cd cb-sol-cli \
 && npm install \
 && make install
 
