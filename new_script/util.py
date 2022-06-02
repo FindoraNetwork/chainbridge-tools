@@ -166,9 +166,28 @@ def Build_Relayer_YAML(r_name):
     with open(r_dir + "/relayer-deployment.yaml", 'w') as f:
         f.write(k8s_template)
 
-# debug
-if __name__ == "__main__":
-    print(load_functionSig("ColumbusRelayer","withdrawToOtherChainCallback"))
-    print(load_functionSig("ColumbusRelayer","depositFromOtherChain"))
-    print(load_functionSig("ColumbusDeck","deposit"))
-    print(load_functionSig("ColumbusDeck","withdraw"))
+
+# For upgradeable
+def upgradeable_Deploy(w3_obj, contract_name, init_args):
+    real_address = Deploy_Contract(w3_obj, contract_name, ())
+    proxyadmin_address = Deploy_Contract(w3_obj, contract_name+'ProxyAdmin', ())
+
+    real = w3_obj.eth.contract(real_address, abi=load_abi(contract_name))
+    fun = real.encodeABI(fn_name="initialize", args=list(init_args))
+
+    proxy_address = Deploy_Contract(w3_obj, contract_name+'Proxy', (real_address, proxyadmin_address, fun))
+    return proxy_address
+
+def upgradeable_Update(w3_obj, proxy_address, contract_name, init_args):
+    real_address = Deploy_Contract(w3_obj, contract_name, ())
+    
+    proxy = w3_obj.eth.contract(proxy_address, abi=load_abi(contract_name+'Proxy'))
+    proxyadmin_address = proxy.functions.proxyadmin().call()
+    proxyadmin = w3_obj.eth.contract(proxyadmin_address, abi=load_abi(contract_name+'ProxyAdmin'))
+
+    real = w3_obj.eth.contract(real_address, abi=load_abi(contract_name))
+    fun = real.encodeABI(fn_name="initialize", args=list(init_args))
+
+    func = proxyadmin.functions.upgradeAndCall(proxy_address, real_address, fun)
+    tx_hash = sign_send_wait(w3_obj, func)
+    print("{} ProxyAdmin.upgradeAndCall transaction hash: {}".format(contract_name, tx_hash.hex()))

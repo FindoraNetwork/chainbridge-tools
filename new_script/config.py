@@ -25,17 +25,6 @@ uni_resourceID = "0x000000000000000000000000000000c76ebe4a02bbc34786d860b355f511
 
 mnemonic_file_path = "/home/platform/findora_wallet/Mnemonic_Big_qa02"
 
-contract_json_path = {
-    "Bridge": "contracts/Bridge.json",
-    "GenericHandler": "contracts/GenericHandler.json",
-    "ColumbusDeck": "contracts/ColumbusDeck.json",
-    "ColumbusAsset": "contracts/ColumbusAsset.json",
-    "ColumbusRelayer": "contracts/ColumbusRelayer.json",
-    "ColumbusSimBridge": "contracts/ColumbusSimBridge.json",
-    "PrismXXAsset": "contracts/PrismXXAsset.json",
-    "PrismXXLedger": "contracts/PrismXXLedger.json",
-    "PrismXXBridge": "contracts/PrismXXBridge.json",
-    "PrismProxy": "contracts/PrismProxy.json",
-    "WrapToken": "contracts/WrapToken.json",
-    "ERC20": "contracts/ERC20.json"
-}
+contract_json_path = {}
+for i in os.listdir('contracts'):
+    contract_json_path[i[:-5]] = 'contracts/'+i
