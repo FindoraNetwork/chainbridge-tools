@@ -13,7 +13,8 @@ def deployGenericHandler(w3, bridge_address):
     return Deploy_Contract(w3, "GenericHandler", (bridge_address, [], [], [], []))
 
 def deployColumbusDeck(w3, genericHandlerAddress, columbusAssetAddress):
-    return Deploy_Contract(w3, "ColumbusDeck", (genericHandlerAddress, columbusAssetAddress))
+    # return Deploy_Contract(w3, "ColumbusDeck", (genericHandlerAddress, columbusAssetAddress))
+    return upgradeable_Deploy(w3, "ColumbusDeck", (genericHandlerAddress, columbusAssetAddress))
 
 def deployColumbusAsset(w3):
     return Deploy_Contract(w3, "ColumbusAsset", ())
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     handler_address = deployGenericHandler(w3, bridge_address)
     focus_print("Deployment ColumbusAsset Contract")
     asset_address = deployColumbusAsset(w3)
-    focus_print("Deployment ColumbusDeck Contract")
+    focus_print("Deployment ColumbusDeck Contract (upgradeable)")
     deck_address = deployColumbusDeck(w3, handler_address, asset_address)
 
     focus_print("Call Bridge.adminSetGenericResource")

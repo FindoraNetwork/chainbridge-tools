@@ -20,7 +20,8 @@ def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _pr
     ))
 
 def deployColumbusSimBridge(w3, _prismBridgeAddress, _prismBridgeLedger):
-    return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
+    # return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
+    return upgradeable_Deploy(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
 
 def adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbus_relayer_address):
     bridge_abi = load_abi("Bridge")
@@ -89,7 +90,7 @@ def func_columbus(args):
     asset_address = deployColumbusAsset(w3)
     focus_print("Deployment ColumbusRelayer Contract")
     columbus_relayer_address = deployColumbusRelayer(w3, handler_address, prism_bridge, prism_ledger, asset_address, bridge_address)
-    focus_print("Deployment ColumbusSimBridge Contract")
+    focus_print("Deployment ColumbusSimBridge Contract (upgradeable)")
     columbus_simbridge_address = deployColumbusSimBridge(w3, prism_bridge, prism_ledger)
 
     focus_print("Call Bridge.adminSetGenericResource")

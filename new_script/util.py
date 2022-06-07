@@ -178,16 +178,13 @@ def upgradeable_Deploy(w3_obj, contract_name, init_args):
     proxy_address = Deploy_Contract(w3_obj, contract_name+'Proxy', (real_address, proxyadmin_address, fun))
     return proxy_address
 
-def upgradeable_Update(w3_obj, proxy_address, contract_name, init_args):
+def upgradeable_Update(w3_obj, proxy_address, contract_name):
     real_address = Deploy_Contract(w3_obj, contract_name, ())
     
     proxy = w3_obj.eth.contract(proxy_address, abi=load_abi(contract_name+'Proxy'))
-    proxyadmin_address = proxy.functions.proxyadmin().call()
+    proxyadmin_address = proxy.functions.proxyAdmin().call()
     proxyadmin = w3_obj.eth.contract(proxyadmin_address, abi=load_abi(contract_name+'ProxyAdmin'))
 
-    real = w3_obj.eth.contract(real_address, abi=load_abi(contract_name))
-    fun = real.encodeABI(fn_name="initialize", args=list(init_args))
-
-    func = proxyadmin.functions.upgradeAndCall(proxy_address, real_address, fun)
+    func = proxyadmin.functions.upgrade(proxy_address, real_address)
     tx_hash = sign_send_wait(w3_obj, func)
     print("{} ProxyAdmin.upgradeAndCall transaction hash: {}".format(contract_name, tx_hash.hex()))
