@@ -170,20 +170,20 @@ def Build_Relayer_YAML(r_name):
 # For upgradeable
 def upgradeable_Deploy(w3_obj, contract_name, init_args):
     real_address = Deploy_Contract(w3_obj, contract_name, ())
-    proxyadmin_address = Deploy_Contract(w3_obj, contract_name+'ProxyAdmin', ())
+    proxyadmin_address = Deploy_Contract(w3_obj, 'ColumbusProxyAdmin', ())
 
     real = w3_obj.eth.contract(real_address, abi=load_abi(contract_name))
     fun = real.encodeABI(fn_name="initialize", args=list(init_args))
 
-    proxy_address = Deploy_Contract(w3_obj, contract_name+'Proxy', (real_address, proxyadmin_address, fun))
+    proxy_address = Deploy_Contract(w3_obj, 'ColumbusProxy', (real_address, proxyadmin_address, fun))
     return proxy_address
 
 def upgradeable_Update(w3_obj, proxy_address, contract_name):
     real_address = Deploy_Contract(w3_obj, contract_name, ())
     
-    proxy = w3_obj.eth.contract(proxy_address, abi=load_abi(contract_name+'Proxy'))
+    proxy = w3_obj.eth.contract(proxy_address, abi=load_abi('ColumbusProxy'))
     proxyadmin_address = proxy.functions.proxyAdmin().call()
-    proxyadmin = w3_obj.eth.contract(proxyadmin_address, abi=load_abi(contract_name+'ProxyAdmin'))
+    proxyadmin = w3_obj.eth.contract(proxyadmin_address, abi=load_abi('ColumbusProxyAdmin'))
 
     func = proxyadmin.functions.upgrade(proxy_address, real_address)
     tx_hash = sign_send_wait(w3_obj, func)

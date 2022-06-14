@@ -10,7 +10,8 @@ from Add_Network import deployBridgeContract, deployGenericHandler, deployColumb
 
 def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress):
     _genericHandlerResourceId = uni_resourceID
-    return Deploy_Contract(w3, "ColumbusRelayer", (
+    # return Deploy_Contract(w3, "ColumbusRelayer", (
+    return upgradeable_Deploy(w3, "ColumbusRelayer", (
         _genericHandlerAddress,
         _prismxxBridgeAddress,
         _prismLedgerAddress,
@@ -88,7 +89,7 @@ def func_columbus(args):
     handler_address = deployGenericHandler(w3, bridge_address)
     focus_print("Deployment ColumbusAsset Contract")
     asset_address = deployColumbusAsset(w3)
-    focus_print("Deployment ColumbusRelayer Contract")
+    focus_print("Deployment ColumbusRelayer Contract (upgradeable)(LP)")
     columbus_relayer_address = deployColumbusRelayer(w3, handler_address, prism_bridge, prism_ledger, asset_address, bridge_address)
     focus_print("Deployment ColumbusSimBridge Contract (upgradeable)")
     columbus_simbridge_address = deployColumbusSimBridge(w3, prism_bridge, prism_ledger)
