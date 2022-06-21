@@ -34,7 +34,8 @@ def pull_and_build():
         sol_files,
         output_values=['abi', 'bin', 'hashes'],
         solc_version="0.8.13",
-        allow_paths=["/home/ys/ys-contracts/contracts"]
+        allow_paths=["/home/ys/ys-contracts/contracts"],
+        optimize=True
     )
 
     # key_list = ['{}:{}'.format(i, i.split(".sol")[0]) for i in sol_files ]

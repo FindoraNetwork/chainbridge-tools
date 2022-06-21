@@ -14,8 +14,15 @@
             "columbus": {
                 "deck": "",
                 "asset": "",
-                "relayer": "",
-                "simbridge": ""
+                "chain301": {
+                    "asset": "",
+                    "relayer": ""
+                },
+                "chain501": {
+                    "asset": "",
+                    "relayer": "",
+                    "simbridge": ""
+                }
             },
             "Frontend": {
                 "Provider_WS": "",
@@ -36,9 +43,15 @@
     "Token": [
         {
             "name": "",
-            "isWrap": Bool,
-            "asset": "",
+            "Wrap": "",
+            // "asset": "",
             "address": {
+                "Findora": "",
+                "BSC": "",
+                "Rospten": ""
+                ...
+            },
+            "cToken": {
                 "Findora": "",
                 "BSC": "",
                 "Rospten": ""

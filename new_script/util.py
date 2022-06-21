@@ -75,9 +75,12 @@ def load_functionSig(contract_name, function_name):
             return v
 
 # def sign_send_wait(w3_obj, account_obj, txn):
-def sign_send_wait(w3_obj, func):
+def sign_send_wait(w3_obj, func, value=None):
     owner_acct = load_owner()
-    txn = func.buildTransaction({'from': owner_acct.address, 'nonce': w3_obj.eth.getTransactionCount(owner_acct.address), "gasPrice": w3_obj.eth.gas_price})
+    if value:
+        txn = func.buildTransaction({'from': owner_acct.address, 'nonce': w3_obj.eth.getTransactionCount(owner_acct.address), "gasPrice": w3_obj.eth.gas_price, "value":value})
+    else:
+        txn = func.buildTransaction({'from': owner_acct.address, 'nonce': w3_obj.eth.getTransactionCount(owner_acct.address), "gasPrice": w3_obj.eth.gas_price})
 
     signed_txn = owner_acct.sign_transaction(txn)
     tx_hash = w3_obj.eth.send_raw_transaction(signed_txn.rawTransaction)

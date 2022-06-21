@@ -8,8 +8,8 @@ from util import *
 
 from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusAsset
 
-def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress):
-    _genericHandlerResourceId = uni_resourceID
+def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress, resourceID):
+    _genericHandlerResourceId = resourceID
     # return Deploy_Contract(w3, "ColumbusRelayer", (
     return upgradeable_Deploy(w3, "ColumbusRelayer", (
         _genericHandlerAddress,
@@ -24,13 +24,13 @@ def deployColumbusSimBridge(w3, _prismBridgeAddress, _prismBridgeLedger):
     # return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
     return upgradeable_Deploy(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
 
-def adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbus_relayer_address):
+def adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbus_relayer_address, resourceID):
     bridge_abi = load_abi("Bridge")
     bridge_contract = w3.eth.contract(bridge_address, abi=bridge_abi)
 
     func = bridge_contract.functions.adminSetGenericResource(
         handler_address,
-        uni_resourceID,
+        resourceID,
         columbus_relayer_address,
         load_functionSig("ColumbusRelayer","withdrawToOtherChainCallback"),
         load_functionSig("ColumbusRelayer","depositFromOtherChain")
@@ -87,15 +87,24 @@ def func_columbus(args):
     bridge_address = deployBridgeContract(w3, 0)
     focus_print("Deployment GenericHandler Contract")
     handler_address = deployGenericHandler(w3, bridge_address)
-    focus_print("Deployment ColumbusAsset Contract")
-    asset_address = deployColumbusAsset(w3)
-    focus_print("Deployment ColumbusRelayer Contract (upgradeable)(LP)")
-    columbus_relayer_address = deployColumbusRelayer(w3, handler_address, prism_bridge, prism_ledger, asset_address, bridge_address)
-    focus_print("Deployment ColumbusSimBridge Contract (upgradeable)")
-    columbus_simbridge_address = deployColumbusSimBridge(w3, prism_bridge, prism_ledger)
 
-    focus_print("Call Bridge.adminSetGenericResource")
-    adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbus_relayer_address)
+    focus_print("301 Deployment ColumbusAsset Contract")
+    asset_address_301 = deployColumbusAsset(w3)
+    focus_print("301 Deployment ColumbusRelayer Contract (upgradeable)")
+    relayer_address_301 = deployColumbusRelayer(w3, handler_address, prism_bridge, prism_ledger, asset_address_301, bridge_address, resourceID_301)
+
+    focus_print("501 Deployment ColumbusAsset Contract")
+    asset_address_501 = deployColumbusAsset(w3)
+    focus_print("501 Deployment ColumbusRelayer Contract (upgradeable)(LP)")
+    relayer_address_501 = deployColumbusRelayer(w3, handler_address, prism_bridge, prism_ledger, asset_address_501, bridge_address, resourceID_501)
+    focus_print("501 Deployment ColumbusSimBridge Contract (upgradeable)")
+    simbridge_address_501 = deployColumbusSimBridge(w3, prism_bridge, prism_ledger)
+
+    focus_print("301 Call Bridge.adminSetGenericResource")
+    adminSetGenericResource_Privacy(w3, bridge_address, handler_address, relayer_address_301, resourceID_301)
+
+    focus_print("501 Call Bridge.adminSetGenericResource")
+    adminSetGenericResource_Privacy(w3, bridge_address, handler_address, relayer_address_501, resourceID_501)
 
     config_0 = {
         "name": "Findora",
@@ -111,9 +120,15 @@ def func_columbus(args):
             "ledger": prism_ledger
         },
         "columbus": {
-            "relayer": columbus_relayer_address,
-            "simbridge": columbus_simbridge_address,
-            "asset": asset_address
+            "chain301": {
+                "asset": asset_address_301,
+                "relayer": relayer_address_301
+            },
+            "chain501": {
+                "asset": asset_address_501,
+                "relayer": relayer_address_501,
+                "simbridge": simbridge_address_501
+            }
         }
     }
 

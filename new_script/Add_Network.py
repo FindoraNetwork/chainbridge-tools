@@ -25,13 +25,23 @@ def adminSetGenericResource_Destination(w3, bridge_address, handler_address, dec
 
     func = bridge_contract.functions.adminSetGenericResource(
         handler_address,
-        uni_resourceID,
+        resourceID_301,
         deck_address,
         load_functionSig("ColumbusDeck","deposit"),
         load_functionSig("ColumbusDeck","withdraw")
     )
     tx_hash = sign_send_wait(w3, func)
-    print("adminSetGenericResource {} transaction hash: {}".format(deck_address, tx_hash.hex()))
+    print("301 adminSetGenericResource {} transaction hash: {}".format(deck_address, tx_hash.hex()))
+
+    func = bridge_contract.functions.adminSetGenericResource(
+        handler_address,
+        resourceID_501,
+        deck_address,
+        load_functionSig("ColumbusDeck","deposit"),
+        load_functionSig("ColumbusDeck","withdraw")
+    )
+    tx_hash = sign_send_wait(w3, func)
+    print("501 adminSetGenericResource {} transaction hash: {}".format(deck_address, tx_hash.hex()))
 
 def adminAddRelayer(w3, bridge_address):
     bridge_abi = load_abi("Bridge")
@@ -62,7 +72,7 @@ if __name__ == "__main__":
     handler_address = deployGenericHandler(w3, bridge_address)
     focus_print("Deployment ColumbusAsset Contract")
     asset_address = deployColumbusAsset(w3)
-    focus_print("Deployment ColumbusDeck Contract (upgradeable)")
+    focus_print("Deployment ColumbusDeck Contract (upgradeable)(LP)")
     deck_address = deployColumbusDeck(w3, handler_address, asset_address)
 
     focus_print("Call Bridge.adminSetGenericResource")
