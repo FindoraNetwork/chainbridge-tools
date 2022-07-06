@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser_add.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
     parser_add.add_argument('name', help="Specific Token Name (Must exist in the config!!!)")
     parser_add.add_argument('minAdd', help="set add liquidity min amount. Unit wei.")
-    parser_add.add_argument('minFee', help="set liquidity fee. Unit wei.")
+    parser_add.add_argument('minFee', help="set liquidity fee Proportion: minFee / 10000")
     parser_add.add_argument('fixedFee', help="set fixedFee. Unit wei.")
     parser_add.add_argument('--nativeWrap', help="nativeWrap Flag", action='store_true')
     parser_add.add_argument('--amount', help="Optional. then add token to liquidity. Unit ether.")
@@ -122,9 +122,9 @@ if __name__ == "__main__":
 
     parser_setFeeShare = subparsers.add_parser('setFeeShare', help='Set the point for allocate fees.')
     parser_setFeeShare.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
-    parser_setFeeShare.add_argument('--Provider', help="allocated point For Provider")
-    parser_setFeeShare.add_argument('--Platform', help="allocated point For Platform")
-    parser_setFeeShare.add_argument('--Contributor', help="allocated point For Contributor.")
+    parser_setFeeShare.add_argument('--Provider', help="allocated point For Provider. Proportion Max 10000.")
+    parser_setFeeShare.add_argument('--Platform', help="allocated point For Platform. Proportion Max 10000.")
+    parser_setFeeShare.add_argument('--Contributor', help="allocated point For Contributor. Proportion Max 10000.")
     parser_setFeeShare.set_defaults(func=func_setFeeShare)
 
     args = parser.parse_args()
