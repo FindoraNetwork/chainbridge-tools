@@ -8,18 +8,19 @@ if not os.path.exists(config_dir_path):
 key_dir_path = os.getcwd() + "/keys"
 if not os.path.exists(key_dir_path):
     os.mkdir(key_dir_path)
-kustomize_dir_path = config_dir_path + "/kustomize"
-if not os.path.exists(kustomize_dir_path):
-    os.mkdir(kustomize_dir_path)
 
 deploy_config_path = config_dir_path + "/deploy_config.json"
 owner_key_path = key_dir_path + "/owner_keystore.json"
-k8s_template_path = "k8s_yaml/relayer-deployment.yaml"
+password_path = key_dir_path + "/KEYSTORE_PASSWORD"
+chainbridge_bin_path = "/home/platform/chainbridge/build/chainbridge"
 
 gasLimit = 1000000
-maxGasPrice = 200000000000
+maxGasPrice = 100000000000
+executeWatchLimit = 225
+blockConfirmations = 3
 
-KEYSTORE_PASSWORD = "passw0rd"
+with open(password_path, 'r') as f:
+    KEYSTORE_PASSWORD = f.read()
 
 # uni_resourceID = "0x000000000000000000000000000000c76ebe4a02bbc34786d860b355f5111301"
 resourceID_301 = "0x000000000000000000000000000000c76ebe4a02bbc34786d860b355f5111301"

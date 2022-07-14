@@ -7,7 +7,7 @@ from config import *
 from util import *
 
 def deployBridgeContract(w3, chainID):
-    return Deploy_Contract(w3, "Bridge", (chainID, [], 1, 0, 100))
+    return Deploy_Contract(w3, "Bridge", (chainID, [], 2, 0, 100))
 
 def deployGenericHandler(w3, bridge_address):
     return Deploy_Contract(w3, "GenericHandler", (bridge_address, [], [], [], []))

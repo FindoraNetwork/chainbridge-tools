@@ -2,36 +2,45 @@
 # coding=utf-8
 
 import os
-import json
 from web3 import Web3
 
 from config import *
 from util import *
 
 def genkey():
-    i = len(config.Relayer)
-    r_name = "Relayer{}".format(i)
-    acct = Web3().eth.account.create()
-    config.Relayer.append(
-        {
-            "name": r_name,
-            "address": acct.address,
-            # "PrivateKey": acct.privateKey.hex()
-        }
-    )
-    with open(key_dir_path + "/{}_keystore.json".format(r_name), 'w') as f:
-        keystore = acct.encrypt(KEYSTORE_PASSWORD)
-        json.dump(keystore,f, indent=4)
-    # return acct.privateKey.hex()
+    for i in range(6):
+        r_name = "Relayer{}".format(i)
 
-def build():
-    r_name = config.Relayer[-1]['name']
+        gen_result = os.popen("{} accounts generate --password {}".format(chainbridge_bin_path, KEYSTORE_PASSWORD)).read()
+        print(gen_result)
+        
+        for a in gen_result.split():
+            if "address" in a:
+                r_address = (a.split('=')[1])
 
-    r_dir = config_dir_path + "/{}".format(r_name)
-    os.mkdir(r_dir)
+        config.Relayer.append(
+            {
+                "name": r_name,
+                "address": r_address,
+                "group": i // 2
+            }
+        )
 
-    Build_Relayer_Config(config, -1)
-    Build_Relayer_YAML(r_name)
+def build(action):
+    if action == 'init':
+        for n in config.NetWork:
+            n["Relayer_opts"] = {
+                "gasLimit": gasLimit,
+                "maxGasPrice": maxGasPrice,
+                "executeWatchLimit": executeWatchLimit,
+                "blockConfirmations": blockConfirmations
+            }
+        config.save()
+        
+        r_dir = config_dir_path + "/Relayer"
+        os.mkdir(r_dir)
+
+    Build_Relayer_Config()
 
 def adminAddRelayer():
     bridge_abi = load_abi("Bridge")
@@ -40,28 +49,28 @@ def adminAddRelayer():
         w3 = Web3(Web3.HTTPProvider(n['Provider']))
         bridge_contract = w3.eth.contract(n['bridge'], abi=bridge_abi)
 
-        func = bridge_contract.functions.adminAddRelayer(config.Relayer[-1]['address'])
-        # txn = bridge_contract.functions.adminRemoveRelayer(config.Relayer[-1]['address']).buildTransaction({'from': owner_acct.address, 'nonce': w3.eth.getTransactionCount(owner_acct.address), "gasPrice": w3.eth.gas_price})
-        tx_hash = sign_send_wait(w3, func)
-        print("{} adminAddRelayer transaction hash: {}".format(n['name'], tx_hash.hex()))
-
-def deploy():
-    r_name = config.Relayer[-1]['name']
-    r_dir = config_dir_path + "/{}".format(r_name )
-    print(os.popen("kubectl create cm {} --from-file={}".format(r_name.lower(), r_dir + "/config.json")).read())
-    print(os.popen("kubectl apply -f {}".format(r_dir + "/relayer-deployment.yaml")).read())
+        for r in config.Relayer:
+            func = bridge_contract.functions.adminAddRelayer(r['address'])
+            # txn = bridge_contract.functions.adminRemoveRelayer(config.Relayer[-1]['address']).buildTransaction({'from': owner_acct.address, 'nonce': w3.eth.getTransactionCount(owner_acct.address), "gasPrice": w3.eth.gas_price})
+            tx_hash = sign_send_wait(w3, func)
+            print("{} adminAddRelayer {} transaction hash: {}".format(n['name'], r['name'], tx_hash.hex()))
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('action', choices=['init', 'sync'])
+    args = parser.parse_args()
+
     config.check_0_exist()
 
-    focus_print("Generate New Relayer key")
-    genkey()
-    focus_print("Build New config and yaml")
-    build()
-    focus_print("call Bridge Contract adminAddRelayer for each Networks")
-    adminAddRelayer()
-    # focus_print("Deployment Relayer In Kubernetes Cluster")
-    # deploy()
+    if args.action == 'init':
+        focus_print("Generate 6x Relayer key")
+        genkey()
+        config.save()
 
-    config.save()
+        focus_print("call Bridge Contract adminAddRelayer for each Networks")
+        adminAddRelayer()
+
+    focus_print("Build 6x Config")
+    build(args.action)

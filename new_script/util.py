@@ -4,6 +4,7 @@ from config import *
 
 import os
 import json
+import random
 
 class Deploy_Config():
     def __init__(self):
@@ -114,20 +115,16 @@ def get_block_number(n):
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
     return w3.eth.get_block_number()
 
-def Build_Relayer_Config(config, index=None):
-    import random
+def Build_Relayer_Config():
+    for r in config.Relayer:
+        r_id = config.Relayer.index(r)
 
-    Relayer = config.Relayer
-    NetWork = config.NetWork
-    
-    if index:
-        Relayer = [config.Relayer[index]]
-
-    for r in Relayer:
         out_json = { "Chains":[] }
-        for n in NetWork:
-            n_id = NetWork.index(n)
+        for n in config.NetWork:
+            n_id = config.NetWork.index(n)
             cur_endpoint = random.choice(n['endpoint'])
+            Relayer_opts = n['Relayer_opts']
+            r_blockConfirmations = (r['group']+1) * Relayer_opts['blockConfirmations'] + (r_id % 2)
             out_json['Chains'].append(
                 {
                     "name": n['name'],
@@ -140,34 +137,19 @@ def Build_Relayer_Config(config, index=None):
                         # "erc20Handler": "",
                         # "erc721Handler": "",
                         "genericHandler": n['handler'],
-                        "gasLimit": str(gasLimit),
-                        "maxGasPrice": str(maxGasPrice),
+                        "gasLimit": str(Relayer_opts['gasLimit']),
+                        "maxGasPrice": str(Relayer_opts['maxGasPrice']),
                         "startBlock": str(get_block_number(n)),
-                        "blockConfirmations": "3" if n_id == 0 else "15",
+                        "executeWatchLimit": str(Relayer_opts['executeWatchLimit']),
+                        "blockConfirmations": str(r_blockConfirmations),
                         "http": "true"
                     }
                 }
             )
-        r_dir = config_dir_path + "/{}".format(r['name'])
-        with open(r_dir + "/config.json", 'w') as f:
+
+        out_path = config_dir_path + "/Relayer" + "/config{}.json".format(r_id)
+        with open(out_path, 'w') as f:
             json.dump(out_json,f, indent=4)
-    
-def Build_Relayer_YAML(r_name):
-    with open(k8s_template_path, 'r') as f:
-        k8s_template = f.read()
-
-    with open(key_dir_path + "/{}_keystore.json".format(r_name), 'r') as f:
-        from web3 import Web3
-        acct = Web3().eth.account.from_key(Web3().eth.account.decrypt(f.read(), KEYSTORE_PASSWORD))
-        privateKey = acct.privateKey.hex()
-
-    k8s_template = k8s_template.replace("{{Key}}", privateKey)
-    k8s_template = k8s_template.replace("{{KEYSTORE_PASSWORD}}", KEYSTORE_PASSWORD)
-    k8s_template = k8s_template.replace("{{NAME}}", r_name.lower())
-    
-    r_dir = config_dir_path + "/{}".format(r_name)
-    with open(r_dir + "/relayer-deployment.yaml", 'w') as f:
-        f.write(k8s_template)
 
 
 # For upgradeable
