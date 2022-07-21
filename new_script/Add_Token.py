@@ -2,8 +2,6 @@
 # coding=utf-8
 
 from web3 import Web3
-import os
-import base64
 
 from config import *
 from util import *
@@ -14,11 +12,6 @@ def Findora_w3():
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
     return (n, w3)
 
-def get_decimals(token_address):
-    _, w3 = Findora_w3()
-    erc20_abi = load_abi("ERC20")
-    token_contract = w3.eth.contract(token_address, abi=erc20_abi)
-    return token_contract.functions.decimals().call()
 
 def adminSetTokenId_dest(tokenId, tokenAddress, network_name, isBurn=False):
     _, n = config.get_Network(network_name)
@@ -77,41 +70,12 @@ def adminSetMinter_Relayer(wrap_address):
     tx_hash = sign_send_wait(w3, func)
     print("adminSetMinter {} transaction hash: {}".format(_minter, tx_hash.hex()))
 
-def fn_asset_create(memo, decimal, wrapFlag):
-    endpoint = config.NetWork[0]['Provider'].split('8545')[0][:-1]
-    os.popen("fn setup --owner-mnemonic-path {} --serv-addr {} 2>/dev/null".format(mnemonic_file_path, endpoint)).read()
-
-    if wrapFlag:
-        # code format: base64(bytes32("wrapToken0000000000000000000Name"))
-        code = str(base64.b64encode(bytes("wrapToken"+memo.zfill(23), encoding='utf-8')), encoding='utf-8')
-    else:
-        # code format: base64(bytes32("Token00000000000000000000000Name"))
-        code = str(base64.b64encode(bytes("Token"+memo.zfill(27), encoding='utf-8')), encoding='utf-8')
-    os.popen("fn asset --create --memo {} --decimal {} --code {} --transferable 2>/dev/null".format(mnemonic_file_path, decimal, code)).read()
-    return code
-
-def adminSetAssetMaping(_frc20, _asset, _isBurn, _decimal):
-    n, w3 = Findora_w3()
-
-    prism_asset_abi = load_abi("PrismXXAsset")
-    prism_asset_contract = w3.eth.contract(n['prism']['asset'], abi=prism_asset_abi)
-
-    func = prism_asset_contract.functions.adminSetAssetMaping(_frc20, base64.b64decode(_asset), _isBurn, int(_decimal))
-    tx_hash = sign_send_wait(w3, func)
-    print("adminSetAssetMaping {} transaction hash: {}".format(_frc20, tx_hash.hex()))
-
 
 def func_301(args):
     focus_print("Deployment wrapToken Contract")
     wrap_address = deployWrapTokenContract(args.name, args.symbol, args.decimal)
     focus_print("warpToken.adminSetMinter To ColumbusRelayer")
     adminSetMinter_Relayer(wrap_address)
-
-    focus_print("Run fn asset create")
-    asset_code = fn_asset_create(args.name, args.decimal, wrapFlag=True)
-
-    focus_print("Call PrismXXAsset.adminSetAssetMaping")
-    adminSetAssetMaping(wrap_address, asset_code, True, args.decimal)
 
     focus_print("Call ColumbusAsset.adminSetTokenId")
     # The reason is solidity mapping data structure
@@ -128,19 +92,9 @@ def func_301(args):
     )
 
 def func_501(args):
-    if not args.WFRA:
-        decimals = get_decimals(args.address)
-
-        focus_print("Run fn asset create")
-        asset_code = fn_asset_create(args.name, decimals, wrapFlag=False)
-
-        focus_print("Call PrismXXAsset.adminSetAssetMaping")
-        adminSetAssetMaping(args.address, asset_code, False, decimals)
-
-        focus_print("Call ColumbusAsset.adminSetTokenId")
-        # The reason is solidity mapping data structure
-        # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
-    
+    focus_print("Call ColumbusAsset.adminSetTokenId")
+    # The reason is solidity mapping data structure
+    # https://github.com/ysfinance/ys-contracts/blob/main/docs/qa02.md#tokenid
     t_id, _ = config.get_Token(args.name) # Get Flow 301 create tokenId
     adminSetTokenId_501(t_id, args.address, args.WFRA)
 
@@ -151,7 +105,6 @@ def func_destination(args):
     t_id, _ = config.get_Token(args.name)
 
     focus_print("Call ColumbusAsset.adminSetTokenId")
-    # adminSetTokenId_ColumbusAsset(n, t_id, args.address, args.burn)
     adminSetTokenId_dest(t_id, args.address, network_name=args.network, isBurn=args.burn)
 
     config.Token[t_id-1]['address'][args.network] = args.address

@@ -41,8 +41,8 @@ def adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbu
 def deployPrismXXBridge(w3, _proxy_contract):
     return Deploy_Contract(w3, "PrismXXBridge", (_proxy_contract,))
 
-def deployPrismXXAsset(w3):
-    return Deploy_Contract(w3, "PrismXXAsset", ())
+def deployPrismXXAsset(w3, _bridge):
+    return Deploy_Contract(w3, "PrismXXAsset", (_bridge,))
 
 def deployPrismXXLedger(w3, _bridge, _asset):
     return Deploy_Contract(w3, "PrismXXLedger", (_bridge, _asset))
@@ -148,7 +148,7 @@ def func_prism(args):
     focus_print("call PrismProxy.adminSetPrismBridgeAddress")
     Set_PrismProxy(w3, prism_proxy, prism_bridge)
     focus_print("Deployment PrismXXAsset Contract")
-    prism_asset = deployPrismXXAsset(w3)
+    prism_asset = deployPrismXXAsset(w3, prism_bridge)
     focus_print("Deployment PrismXXLedger Contract")
     prism_ledger = deployPrismXXLedger(w3, prism_bridge, prism_asset)
     focus_print("call PrismXXBridge.adminSetAsset && PrismXXBridge.adminSetLedger")
