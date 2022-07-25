@@ -90,6 +90,44 @@ const removeMinterCmd = new Command("remove-minter")
         await waitForTx(args.provider, tx.hash)
     })
 
+const isPauserCmd = new Command("is-pauser")
+    .description("Check if address is pauser")
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .option('--pauser <value>', 'Address to check', constants.relayerAddresses[0])
+    .action(async function (args) {
+            await setupParentArgs(args, args.parent.parent)
+            const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+            let PAUSER_ROLE = await erc20Instance.PAUSER_ROLE();
+            let res = await erc20Instance.hasRole(PAUSER_ROLE, args.pauser)
+            console.log(`[${args._name}] Address ${args.pauser} ${res ? "is" : "is not"} a pauser.`)
+    })
+
+const addPauserCmd = new Command("add-pauser")
+    .description("Add a new pauser to the contract")
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .option('--pauser <address>', 'Pauser address', constants.relayerAddresses[1])
+    .action(async function(args) {
+        await setupParentArgs(args, args.parent.parent)
+        const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+        let PAUSER_ROLE = await erc20Instance.PAUSER_ROLE();
+        log(args, `Adding ${args.pauser} as a pauser on contract ${args.erc20Address}`);
+        const tx = await erc20Instance.grantRole(PAUSER_ROLE, args.pauser);
+        await waitForTx(args.provider, tx.hash)
+    })
+
+const removePauserCmd = new Command("remove-pauser")
+    .description("Remove a pauser from the contract")
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .option('--pauser <address>', 'Pauser address', constants.relayerAddresses[1])
+    .action(async function(args) {
+        await setupParentArgs(args, args.parent.parent)
+        const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+        let PAUSER_ROLE = await erc20Instance.PAUSER_ROLE();
+        log(args, `Removing ${args.pauser} as a pauser on contract ${args.erc20Address}`);
+        const tx = await erc20Instance.revokeRole(PAUSER_ROLE, args.pauser);
+        await waitForTx(args.provider, tx.hash)
+    })
+
 const approveCmd = new Command("approve")
     .description("Approve tokens for transfer")
     .option('--amount <value>', "Amount to transfer", 1)
@@ -220,6 +258,9 @@ erc20Cmd.addCommand(mintCmd)
 erc20Cmd.addCommand(isMinterCmd)
 erc20Cmd.addCommand(addMinterCmd)
 erc20Cmd.addCommand(removeMinterCmd)
+erc20Cmd.addCommand(isPauserCmd)
+erc20Cmd.addCommand(addPauserCmd)
+erc20Cmd.addCommand(removePauserCmd)
 erc20Cmd.addCommand(approveCmd)
 erc20Cmd.addCommand(depositCmd)
 erc20Cmd.addCommand(balanceCmd)
