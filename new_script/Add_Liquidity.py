@@ -103,6 +103,15 @@ def func_setFeeShare(w3, LP_address, args):
         focus_print("Call LP.setFeeShare To Contributor")
         LP_setFeeShare(w3, LP_address, 3, int(args.Contributor))
 
+def func_setFeeAdmin(w3, LP_address, args):
+    if args.network == 'Findora':
+        LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusRelayer'))
+    else:
+        LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusDeck'))
+    func = LP_contract.functions.setFeeAdmin(args.admin)
+    tx_hash = sign_send_wait(w3, func)
+    print("LP_setFeeAdmin {} transaction hash: {}".format(args.admin, tx_hash.hex()))
+
 
 if __name__ == "__main__":
     import argparse
@@ -126,6 +135,11 @@ if __name__ == "__main__":
     parser_setFeeShare.add_argument('--Platform', help="allocated point For Platform. Proportion Max 10000.")
     parser_setFeeShare.add_argument('--Contributor', help="allocated point For Contributor. Proportion Max 10000.")
     parser_setFeeShare.set_defaults(func=func_setFeeShare)
+
+    parser_setFeeShare = subparsers.add_parser('setFeeAdmin', help='Set the fee admin address.')
+    parser_setFeeShare.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
+    parser_setFeeShare.add_argument('admin', help="allocated point For Provider. Proportion Max 10000.")
+    parser_setFeeShare.set_defaults(func=func_setFeeAdmin)
 
     args = parser.parse_args()
 
