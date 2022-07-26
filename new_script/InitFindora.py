@@ -10,7 +10,6 @@ from Add_Network import deployBridgeContract, deployGenericHandler, deployColumb
 
 def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress, resourceID):
     _genericHandlerResourceId = resourceID
-    # return Deploy_Contract(w3, "ColumbusRelayer", (
     return upgradeable_Deploy(w3, "ColumbusRelayer", (
         _genericHandlerAddress,
         _prismxxBridgeAddress,
@@ -21,7 +20,6 @@ def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _pr
     ))
 
 def deployColumbusSimBridge(w3, _prismBridgeAddress, _prismBridgeLedger):
-    # return Deploy_Contract(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
     return upgradeable_Deploy(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
 
 def adminSetGenericResource_Privacy(w3, bridge_address, handler_address, columbus_relayer_address, resourceID):
@@ -42,10 +40,10 @@ def deployPrismXXBridge(w3, _proxy_contract):
     return Deploy_Contract(w3, "PrismXXBridge", (_proxy_contract,))
 
 def deployPrismXXAsset(w3, _bridge):
-    return Deploy_Contract(w3, "PrismXXAsset", (_bridge,))
+    return upgradeable_Deploy(w3, "PrismXXAsset", (_bridge,))
 
 def deployPrismXXLedger(w3, _bridge, _asset):
-    return Deploy_Contract(w3, "PrismXXLedger", (_bridge, _asset))
+    return upgradeable_Deploy(w3, "PrismXXLedger", (_bridge, _asset))
 
 def Set_PrismProxy(w3, prism_proxy_address, _prismBridgeAddress):
     prism_proxy_abi = load_abi("PrismProxy")
@@ -147,9 +145,9 @@ def func_prism(args):
     prism_bridge = deployPrismXXBridge(w3, prism_proxy)
     focus_print("call PrismProxy.adminSetPrismBridgeAddress")
     Set_PrismProxy(w3, prism_proxy, prism_bridge)
-    focus_print("Deployment PrismXXAsset Contract")
+    focus_print("Deployment PrismXXAsset Contract (upgradeable)")
     prism_asset = deployPrismXXAsset(w3, prism_bridge)
-    focus_print("Deployment PrismXXLedger Contract")
+    focus_print("Deployment PrismXXLedger Contract (upgradeable)")
     prism_ledger = deployPrismXXLedger(w3, prism_bridge, prism_asset)
     focus_print("call PrismXXBridge.adminSetAsset && PrismXXBridge.adminSetLedger")
     Set_PrismXXBridge(w3, prism_bridge, prism_asset, prism_ledger)

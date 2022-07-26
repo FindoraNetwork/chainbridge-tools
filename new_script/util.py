@@ -154,22 +154,36 @@ def Build_Relayer_Config():
 
 # For upgradeable
 def upgradeable_Deploy(w3_obj, contract_name, init_args):
+    if 'Prism' in contract_name:
+        ProxyAdmin_name = 'PrismXXProxyAdmin'
+        Proxy_name = 'PrismXXProxy'
+    if 'Columbus' in contract_name:
+        ProxyAdmin_name = 'ColumbusProxyAdmin'
+        Proxy_name = 'ColumbusProxy'
+    
     real_address = Deploy_Contract(w3_obj, contract_name, ())
-    proxyadmin_address = Deploy_Contract(w3_obj, 'ColumbusProxyAdmin', ())
+    proxyadmin_address = Deploy_Contract(w3_obj, ProxyAdmin_name, ())
 
     real = w3_obj.eth.contract(real_address, abi=load_abi(contract_name))
     fun = real.encodeABI(fn_name="initialize", args=list(init_args))
 
-    proxy_address = Deploy_Contract(w3_obj, 'ColumbusProxy', (real_address, proxyadmin_address, fun))
+    proxy_address = Deploy_Contract(w3_obj, Proxy_name, (real_address, proxyadmin_address, fun))
     return proxy_address
 
 def upgradeable_Update(w3_obj, proxy_address, contract_name):
+    if 'Prism' in contract_name:
+        ProxyAdmin_name = 'PrismXXProxyAdmin'
+        Proxy_name = 'PrismXXProxy'
+    if 'Columbus' in contract_name:
+        ProxyAdmin_name = 'ColumbusProxyAdmin'
+        Proxy_name = 'ColumbusProxy'
+    
     real_address = Deploy_Contract(w3_obj, contract_name, ())
     
-    proxy = w3_obj.eth.contract(proxy_address, abi=load_abi('ColumbusProxy'))
+    proxy = w3_obj.eth.contract(proxy_address, abi=load_abi(Proxy_name))
     proxyadmin_address = proxy.functions.proxyAdmin().call()
-    proxyadmin = w3_obj.eth.contract(proxyadmin_address, abi=load_abi('ColumbusProxyAdmin'))
+    proxyadmin = w3_obj.eth.contract(proxyadmin_address, abi=load_abi(ProxyAdmin_name))
 
     func = proxyadmin.functions.upgrade(proxy_address, real_address)
     tx_hash = sign_send_wait(w3_obj, func)
-    print("{} ProxyAdmin.upgradeAndCall transaction hash: {}".format(contract_name, tx_hash.hex()))
+    print("{} ProxyAdmin.upgrade transaction hash: {}".format(contract_name, tx_hash.hex()))
