@@ -27,6 +27,18 @@ const addAdminCmd = new Command("add-admin")
         await waitForTx(args.provider, tx.hash)
     })
 
+const removeAdminCmd = new Command("remove-admin")
+    .description("Removes an admin")
+    .option('--admin <address>', 'Address of admin', constants.adminAddresses[0])
+    .option('--erc20Address <address>', 'ERC20 contract address', constants.ERC20_ADDRESS)
+    .action(async function (args) {
+      await setupParentArgs(args, args.parent.parent)
+      const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
+      log(args, `Removing ${args.admin} as an admin.`)
+      let tx = await erc20Instance.revokeRole(constants.ADMIN_ROLE, args.admin)
+      await waitForTx(args.provider, tx.hash)
+    })
+
 const renounceAdminCmd = new Command("renounce-admin")
     .description("Renounce an admin")
     .option('--admin <address>', 'Address of current admin', constants.adminAddresses[0])
@@ -253,6 +265,7 @@ const erc20Cmd = new Command("erc20")
 
 erc20Cmd.addCommand(isAdminCmd)
 erc20Cmd.addCommand(addAdminCmd)
+erc20Cmd.addCommand(removeAdminCmd)
 erc20Cmd.addCommand(renounceAdminCmd)
 erc20Cmd.addCommand(mintCmd)
 erc20Cmd.addCommand(isMinterCmd)
