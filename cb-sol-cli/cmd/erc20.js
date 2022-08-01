@@ -73,6 +73,7 @@ const isMinterCmd = new Command("is-minter")
             const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
             let MINTER_ROLE = await erc20Instance.MINTER_ROLE();
             let res = await erc20Instance.hasRole(MINTER_ROLE, args.minter)
+            console.log(`minterRole: ${MINTER_ROLE}`)
             console.log(`[${args._name}] Address ${args.minter} ${res ? "is" : "is not"} a minter.`)
     })
 
@@ -111,6 +112,7 @@ const isPauserCmd = new Command("is-pauser")
             const erc20Instance = new ethers.Contract(args.erc20Address, constants.ContractABIs.Erc20Mintable.abi, args.wallet);
             let PAUSER_ROLE = await erc20Instance.PAUSER_ROLE();
             let res = await erc20Instance.hasRole(PAUSER_ROLE, args.pauser)
+            console.log(`pauserRole: ${PAUSER_ROLE}`)
             console.log(`[${args._name}] Address ${args.pauser} ${res ? "is" : "is not"} a pauser.`)
     })
 
