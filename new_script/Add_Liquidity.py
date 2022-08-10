@@ -92,16 +92,16 @@ def func_add(w3, LP_address, args):
             LP_addLiquidity(w3, LP_address, token_address, args.amount)
 
 def func_setFeeShare(w3, LP_address, args):
-    # 1: Provider, 2: Platform, 3: Contributor
+    # 0: Provider, 1: Platform, 2: Contributor
     if args.Provider != None:
         focus_print("Call LP.setFeeShare To Provider")
-        LP_setFeeShare(w3, LP_address, 1, int(args.Provider))
+        LP_setFeeShare(w3, LP_address, 0, int(args.Provider))
     if args.Platform != None:
         focus_print("Call LP.setFeeShare To Platform")
-        LP_setFeeShare(w3, LP_address, 2, int(args.Platform))
+        LP_setFeeShare(w3, LP_address, 1, int(args.Platform))
     if args.Contributor != None:
         focus_print("Call LP.setFeeShare To Contributor")
-        LP_setFeeShare(w3, LP_address, 3, int(args.Contributor))
+        LP_setFeeShare(w3, LP_address, 2, int(args.Contributor))
 
 def func_setFeeAdmin(w3, LP_address, args):
     if args.network == 'Findora':
