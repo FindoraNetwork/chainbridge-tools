@@ -104,10 +104,7 @@ def func_setFeeShare(w3, LP_address, args):
         LP_setFeeShare(w3, LP_address, 2, int(args.Contributor))
 
 def func_setFeeAdmin(w3, LP_address, args):
-    if args.network == 'Findora':
-        LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusRelayer'))
-    else:
-        LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusDeck'))
+    LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusPool'))
     func = LP_contract.functions.setFeeAdmin(args.admin)
     tx_hash = sign_send_wait(w3, func)
     print("LP_setFeeAdmin {} transaction hash: {}".format(args.admin, tx_hash.hex()))
@@ -149,8 +146,10 @@ if __name__ == "__main__":
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
 
     if args.network == 'Findora':
-        LP_address = n['columbus']["chain501"]['relayer']
+        # LP_address = n['columbus']["chain501"]['relayer']
+        LP_address = n['columbus']["chain501"]['pool']
     else:
-        LP_address = n['columbus']['deck']
+        # LP_address = n['columbus']['deck']
+        LP_address = n['columbus']['pool']
 
     args.func(w3, LP_address, args)

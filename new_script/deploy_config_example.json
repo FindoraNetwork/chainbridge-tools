@@ -14,6 +14,7 @@
             "columbus": {
                 "deck": "",
                 "asset": "",
+                "pool": "",
 
                 "chain301": {
                     "asset": "",
@@ -22,6 +23,7 @@
                 "chain501": {
                     "asset": "",
                     "relayer": "",
+                    "pool": "",
                     "simbridge": ""
                 },
                 

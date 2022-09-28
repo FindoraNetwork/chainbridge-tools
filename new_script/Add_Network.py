@@ -13,8 +13,26 @@ def deployGenericHandler(w3, bridge_address):
     return Deploy_Contract(w3, "GenericHandler", (bridge_address, [], [], [], []))
 
 def deployColumbusDeck(w3, genericHandlerAddress, columbusAssetAddress):
-    # return Deploy_Contract(w3, "ColumbusDeck", (genericHandlerAddress, columbusAssetAddress))
     return upgradeable_Deploy(w3, "ColumbusDeck", (genericHandlerAddress, columbusAssetAddress))
+
+def deployColumbusPool(w3):
+    return upgradeable_Deploy(w3, "ColumbusPool", ())
+
+def Pool_setColumbus(w3, pool_address, _addr):
+    pool_abi = load_abi("ColumbusPool")
+    pool_contract = w3.eth.contract(pool_address, abi=pool_abi)
+
+    func = pool_contract.functions.setColumbus(_addr)
+    tx_hash = sign_send_wait(w3, func)
+    print("Pool_setColumbus {} transaction hash: {}".format(_addr, tx_hash.hex()))
+
+def Deck_setColumbusPool(w3, deck_address, _addr):
+    deck_abi = load_abi("ColumbusDeck")
+    deck_contract = w3.eth.contract(deck_address, abi=deck_abi)
+
+    func = deck_contract.functions.setColumbusPool(_addr)
+    tx_hash = sign_send_wait(w3, func)
+    print("Deck_setColumbusPool {} transaction hash: {}".format(_addr, tx_hash.hex()))
 
 def deployColumbusAsset(w3):
     return Deploy_Contract(w3, "ColumbusAsset", ())
@@ -72,8 +90,14 @@ if __name__ == "__main__":
     handler_address = deployGenericHandler(w3, bridge_address)
     focus_print("Deployment ColumbusAsset Contract")
     asset_address = deployColumbusAsset(w3)
-    focus_print("Deployment ColumbusDeck Contract (upgradeable)(LP)")
+    focus_print("Deployment ColumbusPool Contract (upgradeable)")
+    pool_address = deployColumbusPool(w3)
+    focus_print("Deployment ColumbusDeck Contract (upgradeable)")
     deck_address = deployColumbusDeck(w3, handler_address, asset_address)
+    focus_print("Call Pool.setColumbus")
+    Pool_setColumbus(w3, pool_address, deck_address)
+    focus_print("Call Deck.setColumbusPool")
+    Deck_setColumbusPool(w3, deck_address, pool_address)
 
     focus_print("Call Bridge.adminSetGenericResource")
     adminSetGenericResource_Destination(w3, bridge_address, handler_address, deck_address)
@@ -92,6 +116,7 @@ if __name__ == "__main__":
             "handler": handler_address,
             "columbus": {
                 "deck": deck_address,
+                "pool": pool_address,
                 "asset": asset_address
             }
         }

@@ -6,7 +6,7 @@ from web3 import Web3
 from config import *
 from util import *
 
-from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusAsset
+from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusAsset, deployColumbusPool, Pool_setColumbus
 
 def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress, resourceID):
     _genericHandlerResourceId = resourceID
@@ -18,6 +18,14 @@ def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _pr
         _genericHandlerResourceId,
         _bridgeAddress
     ))
+
+def Relayer_setColumbusPool(w3, relayer_address, _addr):
+    relayer_abi = load_abi("ColumbusRelayer")
+    relayer_contract = w3.eth.contract(relayer_address, abi=relayer_abi)
+
+    func = relayer_contract.functions.setColumbusPool(_addr)
+    tx_hash = sign_send_wait(w3, func)
+    print("Relayer_setColumbusPool {} transaction hash: {}".format(_addr, tx_hash.hex()))
 
 def deployColumbusSimBridge(w3, _prismBridgeAddress, _prismBridgeLedger):
     return upgradeable_Deploy(w3, "ColumbusSimBridge", (_prismBridgeAddress, _prismBridgeLedger))
@@ -93,8 +101,14 @@ def func_columbus(args):
 
     focus_print("501 Deployment ColumbusAsset Contract")
     asset_address_501 = deployColumbusAsset(w3)
-    focus_print("501 Deployment ColumbusRelayer Contract (upgradeable)(LP)")
+    focus_print("501 Deployment ColumbusPool Contract (upgradeable)")
+    pool_address_501 = deployColumbusPool(w3)
+    focus_print("501 Deployment ColumbusRelayer Contract (upgradeable)")
     relayer_address_501 = deployColumbusRelayer(w3, handler_address, prism_bridge, prism_ledger, asset_address_501, bridge_address, resourceID_501)
+    focus_print("501 Call Pool.setColumbus")
+    Pool_setColumbus(w3, pool_address_501, relayer_address_501)
+    focus_print("501 Call Relayer.setColumbusPool")
+    Relayer_setColumbusPool(w3, relayer_address_501, pool_address_501)
     focus_print("501 Deployment ColumbusSimBridge Contract (upgradeable)")
     simbridge_address_501 = deployColumbusSimBridge(w3, prism_bridge, prism_ledger)
 
@@ -125,6 +139,7 @@ def func_columbus(args):
             "chain501": {
                 "asset": asset_address_501,
                 "relayer": relayer_address_501,
+                "pool": pool_address_501,
                 "simbridge": simbridge_address_501
             }
         }
