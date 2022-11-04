@@ -157,7 +157,7 @@ def upgradeable_Deploy(w3_obj, contract_name, init_args):
     if 'Prism' in contract_name:
         ProxyAdmin_name = 'PrismXXProxyAdmin'
         Proxy_name = 'PrismXXProxy'
-    if 'Columbus' in contract_name:
+    else:
         ProxyAdmin_name = 'ColumbusProxyAdmin'
         Proxy_name = 'ColumbusProxy'
     
@@ -174,7 +174,7 @@ def upgradeable_Update(w3_obj, proxy_address, contract_name):
     if 'Prism' in contract_name:
         ProxyAdmin_name = 'PrismXXProxyAdmin'
         Proxy_name = 'PrismXXProxy'
-    if 'Columbus' in contract_name:
+    else:
         ProxyAdmin_name = 'ColumbusProxyAdmin'
         Proxy_name = 'ColumbusProxy'
     

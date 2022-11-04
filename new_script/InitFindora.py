@@ -6,7 +6,7 @@ from web3 import Web3
 from config import *
 from util import *
 
-from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusAsset, deployColumbusPool, Pool_setColumbus
+from Add_Network import deployBridgeContract, deployGenericHandler, deployColumbusAsset, deployColumbusPool, Pool_setColumbus, Farm_Function_Library
 
 def deployColumbusRelayer(w3, _genericHandlerAddress, _prismxxBridgeAddress, _prismLedgerAddress, _columbusAssetAddress, _bridgeAddress, resourceID):
     _genericHandlerResourceId = resourceID
@@ -118,6 +118,8 @@ def func_columbus(args):
     focus_print("501 Call Bridge.adminSetGenericResource")
     adminSetGenericResource_Privacy(w3, bridge_address, handler_address, relayer_address_501, resourceID_501)
 
+    yes_address, farm_address = Farm_Function_Library(w3, args.yesPerSecond, args.startTime, args.endTime, pool_address_501)
+
     config_0 = {
         "name": "Findora",
         "Provider": provider,
@@ -141,7 +143,9 @@ def func_columbus(args):
                 "relayer": relayer_address_501,
                 "pool": pool_address_501,
                 "simbridge": simbridge_address_501
-            }
+            },
+            "farm" : farm_address,
+            "yes": yes_address
         }
     }
 
@@ -201,6 +205,9 @@ if __name__ == "__main__":
     parser_columbus.add_argument('--prism-bridge', help='PrismXXBridge Contract Address')
     parser_columbus.add_argument('--prism-asset', help='PrismXXAsset Contract Address')
     parser_columbus.add_argument('--prism-ledger', help='PrismXXLedger Contract Address')
+    parser_columbus.add_argument('--yesPerSecond', help="YES tokens created per second. Unit wei.", required=True)
+    parser_columbus.add_argument('--startTime', help="The block time when YES mining starts. Unix timestamp.", required=True)
+    parser_columbus.add_argument('--endTime', help="The block time when YES mining stops. Unix timestamp.", required=True)
     parser_columbus.set_defaults(func=func_columbus)
 
     parser_prism = subparsers.add_parser('prism', help='Init Prism Project in Findora Privacy Network')

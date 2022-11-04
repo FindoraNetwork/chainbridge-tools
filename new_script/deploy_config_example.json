@@ -27,7 +27,8 @@
                     "simbridge": ""
                 },
                 
-                "farm": ""
+                "farm": "",
+                "yes": ""
             },
             "Frontend": {
                 "Provider_WS": "",

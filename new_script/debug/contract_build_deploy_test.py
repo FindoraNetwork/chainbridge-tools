@@ -47,9 +47,14 @@ def pull_and_build():
         if i == "cToken.sol":
             key_list.append("cToken.sol:CToken")
             continue
+        if i == "ColumbusFarm.sol":
+            key_list.append("ColumbusFarm.sol:TreasureCave")
+            continue
+        if i == "ColumbusToken.sol":
+            key_list.append("ColumbusToken.sol:YESToken")
+            continue
         key_list.append('{}:{}'.format(i, i.split(".sol")[0]))
 
-    # print(key_list)
     os.chdir(pwd)    
 
     for i in key_list:

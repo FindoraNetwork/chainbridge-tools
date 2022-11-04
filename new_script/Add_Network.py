@@ -18,6 +18,40 @@ def deployColumbusDeck(w3, genericHandlerAddress, columbusAssetAddress):
 def deployColumbusPool(w3):
     return upgradeable_Deploy(w3, "ColumbusPool", ())
 
+def Farm_Function_Library(w3, yesPerSecond, startTime, endTime, pool_address):
+    focus_print("Deployment YESToken Contract")
+    yes_address = Deploy_Contract(w3, "YESToken", ())
+    focus_print("Deployment ColumbusFarm Contract (upgradeable)")
+    farm_address = upgradeable_Deploy(w3, "TreasureCave", (yes_address, int(yesPerSecond), int(startTime), int(endTime)))
+
+    focus_print("YES grantRole MINTER_ROLE")
+    yes_contract = w3.eth.contract(yes_address, abi=load_abi("YESToken"))
+    MINTER_ROLE = yes_contract.functions.MINTER_ROLE().call()
+    func = yes_contract.functions.grantRole(MINTER_ROLE, pool_address)
+    tx_hash = sign_send_wait(w3, func)
+    print("YES MINTER_ROLE Pool transaction hash: {}".format(tx_hash.hex()))
+    func = yes_contract.functions.grantRole(MINTER_ROLE, farm_address)
+    tx_hash = sign_send_wait(w3, func)
+    print("YES MINTER_ROLE Farm transaction hash: {}".format(tx_hash.hex()))
+
+    focus_print("Farm grantRole POOL_ROLE")
+    farm_contract = w3.eth.contract(farm_address, abi=load_abi("TreasureCave"))
+    POOL_ROLE = farm_contract.functions.POOL_ROLE().call()
+    func = farm_contract.functions.grantRole(POOL_ROLE, pool_address)
+    tx_hash = sign_send_wait(w3, func)
+    print("Farm POOL_ROLE transaction hash: {}".format(tx_hash.hex()))
+    
+    focus_print("Pool setFarm and setYES")
+    pool_contract = w3.eth.contract(pool_address, abi=load_abi("ColumbusPool"))
+    func = pool_contract.functions.setFarm(farm_address)
+    tx_hash = sign_send_wait(w3, func)
+    print("Pool setFarm transaction hash: {}".format(tx_hash.hex()))
+    func = pool_contract.functions.setYES(yes_address)
+    tx_hash = sign_send_wait(w3, func)
+    print("Pool setYES transaction hash: {}".format(tx_hash.hex()))
+
+    return yes_address, farm_address
+
 def Pool_setColumbus(w3, pool_address, _addr):
     pool_abi = load_abi("ColumbusPool")
     pool_contract = w3.eth.contract(pool_address, abi=pool_abi)
@@ -76,6 +110,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', help='New Network Name', required=True)
     parser.add_argument('--provider', help='New Network Provider', required=True)
+    parser.add_argument('--yesPerSecond', help="YES tokens created per second. Unit wei.", required=True)
+    parser.add_argument('--startTime', help="The block time when YES mining starts. Unix timestamp.", required=True)
+    parser.add_argument('--endTime', help="The block time when YES mining stops. Unix timestamp.", required=True)
     args = parser.parse_args()
 
     Network_Name = args.name
@@ -104,6 +141,8 @@ if __name__ == "__main__":
 
     focus_print("adminAddRelayer for Existing Relayer")
     adminAddRelayer(w3, bridge_address)
+    
+    yes_address, farm_address = Farm_Function_Library(w3, args.yesPerSecond, args.startTime, args.endTime, pool_address)
 
     config.NetWork.append(
         {
@@ -117,7 +156,9 @@ if __name__ == "__main__":
             "columbus": {
                 "deck": deck_address,
                 "pool": pool_address,
-                "asset": asset_address
+                "asset": asset_address,
+                "farm" : farm_address,
+                "yes": yes_address
             }
         }
     )

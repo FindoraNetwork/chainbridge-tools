@@ -61,6 +61,12 @@ def LP_setFeeShare(w3, LP_address, _kind, _point):
     tx_hash = sign_send_wait(w3, func)
     print("LP_setFeeShare kind {} transaction hash: {}".format(_kind, tx_hash.hex()))
 
+def Farm_add(w3, farm_address, _allocPoint, _lpToken):
+    farm_contract = w3.eth.contract(farm_address, abi=load_abi("TreasureCave"))
+    func = farm_contract.functions.add(int(_allocPoint), _lpToken)
+    tx_hash = sign_send_wait(w3, func)
+    print("Farm_add transaction hash: {}".format(tx_hash.hex()))
+    
 
 def func_add(w3, LP_address, args):
     _, t = config.get_Token(args.name)
@@ -73,6 +79,11 @@ def func_add(w3, LP_address, args):
 
     focus_print("Call LP.addMarket")
     LP_addMarket(w3, LP_address, token_address, CToken_address, args.minAdd, args.minFee, args.fixedFee)
+
+    focus_print("Farm_add new lpToken")
+    farm_address = n["columbus"]["farm"]
+    lpToken_address = CToken_address
+    Farm_add(w3, farm_address, args.allocPoint, lpToken_address)
 
     if args.nativeWrap:
         focus_print("Call LP.setWrap")
@@ -122,6 +133,7 @@ if __name__ == "__main__":
     parser_add.add_argument('minAdd', help="set add liquidity min amount. Unit wei.")
     parser_add.add_argument('minFee', help="set liquidity fee Proportion: minFee / 10000")
     parser_add.add_argument('fixedFee', help="set fixedFee. Unit wei.")
+    parser_add.add_argument('allocPoint', help="How many allocation points assigned to this pool. YESs to distribute per block.")
     parser_add.add_argument('--nativeWrap', help="nativeWrap Flag", action='store_true')
     parser_add.add_argument('--amount', help="Optional. then add token to liquidity. Unit ether.")
     parser_add.set_defaults(func=func_add)
@@ -133,10 +145,10 @@ if __name__ == "__main__":
     parser_setFeeShare.add_argument('--Contributor', help="allocated point For Contributor. Proportion Max 10000.")
     parser_setFeeShare.set_defaults(func=func_setFeeShare)
 
-    parser_setFeeShare = subparsers.add_parser('setFeeAdmin', help='Set the fee admin address.')
-    parser_setFeeShare.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
-    parser_setFeeShare.add_argument('admin', help="allocated point For Provider. Proportion Max 10000.")
-    parser_setFeeShare.set_defaults(func=func_setFeeAdmin)
+    parser_setFeeAdmin = subparsers.add_parser('setFeeAdmin', help='Set the fee admin address.')
+    parser_setFeeAdmin.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
+    parser_setFeeAdmin.add_argument('admin', help="allocated point For Provider. Proportion Max 10000.")
+    parser_setFeeAdmin.set_defaults(func=func_setFeeAdmin)
 
     args = parser.parse_args()
 
