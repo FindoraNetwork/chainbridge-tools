@@ -9,8 +9,7 @@ from Add_Network import Farm_Function_Library, Pool_setColumbus
 from Add_Token import adminSetTokenId_501, adminSetTokenId_dest
 from Add_Liquidity import LP_addMarket, LP_addLiquidity, LP_setFeeShare, Farm_add
 
-# for n in config.NetWork:
-for n in config.NetWork[1:]:
+for n in config.NetWork:
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
 
     if n['name'] == 'Findora':
@@ -20,27 +19,40 @@ for n in config.NetWork[1:]:
         pool_address = n['columbus']['pool']
         _addr = n['columbus']['deck']
     
-#     upgradeable_Update(w3, pool_address, "ColumbusPool")
+    pool_address = deployColumbusPool(w3)
 
-#     yes_address, farm_address = Farm_Function_Library(w3, 10, 1667390042, 1957330800, pool_address)
+    if n['name'] == 'Findora':
+        relayer_address = n['columbus']["chain501"]['relayer']
+        Pool_setColumbus(w3, pool_address, relayer_address)
+        Relayer_setColumbusPool(w3, relayer_address, pool_address)
+        n['columbus']["chain501"]['pool'] = pool_address
 
-#     n['columbus']['yes'] = yes_address
-#     n['columbus']['farm'] = farm_address
-#     config.save()
+    else:
+        deck_address = n['columbus']['deck']
+        Pool_setColumbus(w3, pool_address, deck_address)
+        Deck_setColumbusPool(w3, deck_address, pool_address)
+        n['columbus']['pool'] = pool_address
 
-    # Pool_setColumbus(w3, pool_address, _addr)
+    print("{} Pool: {}".format(n['name'], pool_address))
+
+    yes_address, farm_address = Farm_Function_Library(w3, 10, 1667390042, 1957330800, pool_address)
+
+    n['columbus']['yes'] = yes_address
+    n['columbus']['farm'] = farm_address
+    config.save()
+
 
 # --------------------------
 
-    # yes_address = n['columbus']['yes']
-    # focus_print("Call ColumbusAsset.adminSetTokenId")
-    # t_id, _ = config.get_Token("YES")
-    # if n['name'] == 'Findora':
-    #     adminSetTokenId_501(t_id, yes_address, False)
-    # else:
-    #     adminSetTokenId_dest(t_id, yes_address, network_name=n['name'], isBurn=False)
-    # config.Token[t_id-1]['address'][n['name']] = yes_address
-    # config.save()
+    yes_address = n['columbus']['yes']
+    focus_print("Call ColumbusAsset.adminSetTokenId")
+    t_id, _ = config.get_Token("YES")
+    if n['name'] == 'Findora':
+        adminSetTokenId_501(t_id, yes_address, False)
+    else:
+        adminSetTokenId_dest(t_id, yes_address, network_name=n['name'], isBurn=False)
+    config.Token[t_id-1]['address'][n['name']] = yes_address
+    config.save()
 
 # --------------------------
 
@@ -57,12 +69,14 @@ for n in config.NetWork[1:]:
         decimals = token_contract.functions.decimals().call()
         DECIMALS = 10 ** decimals
 
-        func = token_contract.functions.mint(load_owner().address, amount*DECIMALS)
+        func = token_contract.functions.mint(load_owner().address, amount*2*DECIMALS)
         tx_hash = sign_send_wait(w3, func)
         print("{} {} Mint transaction hash: {}".format(n_name, t_name, tx_hash.hex()))
 
         LP_address = pool_address
         CToken_address = t['cToken'][n_name]
+        focus_print("CToken.adminSetMinter To LP")
+        adminSetMinter_LP(w3, CToken_address, LP_address)
 
         focus_print("Call LP.addMarket")
         minAdd = 100 * (10 ** (decimals-6))

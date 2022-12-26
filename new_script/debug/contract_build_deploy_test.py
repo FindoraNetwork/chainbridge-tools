@@ -33,7 +33,7 @@ def pull_and_build():
     compiled = solcx.compile_files(
         sol_files,
         output_values=['abi', 'bin', 'hashes'],
-        solc_version="0.8.13",
+        solc_version="0.8.17",
         allow_paths=["/home/ys/ys-contracts/contracts"],
         optimize=True
     )

@@ -114,11 +114,20 @@ def func_setFeeShare(w3, LP_address, args):
         focus_print("Call LP.setFeeShare To Contributor")
         LP_setFeeShare(w3, LP_address, 2, int(args.Contributor))
 
-def func_setFeeAdmin(w3, LP_address, args):
+def func_grantRole(w3, LP_address, args):
     LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusPool'))
-    func = LP_contract.functions.setFeeAdmin(args.admin)
-    tx_hash = sign_send_wait(w3, func)
-    print("LP_setFeeAdmin {} transaction hash: {}".format(args.admin, tx_hash.hex()))
+    if args.FEE_SETTER_ROLE != None:
+        admin_address = args.FEE_SETTER_ROLE
+        FEE_SETTER_ROLE = LP_contract.functions.FEE_SETTER_ROLE().call()
+        func = LP_contract.functions.grantRole(FEE_SETTER_ROLE, admin_address)
+        tx_hash = sign_send_wait(w3, func)
+        print("LP FEE_SETTER_ROLE {} transaction hash: {}".format(admin_address, tx_hash.hex()))
+    if args.PRICE_SETTER_ROLE != None:
+        admin_address = args.PRICE_SETTER_ROLE
+        PRICE_SETTER_ROLE = LP_contract.functions.PRICE_SETTER_ROLE().call()
+        func = LP_contract.functions.grantRole(PRICE_SETTER_ROLE, admin_address)
+        tx_hash = sign_send_wait(w3, func)
+        print("LP PRICE_SETTER_ROLE {} transaction hash: {}".format(admin_address, tx_hash.hex()))
 
 
 if __name__ == "__main__":
@@ -133,7 +142,7 @@ if __name__ == "__main__":
     parser_add.add_argument('minAdd', help="set add liquidity min amount. Unit wei.")
     parser_add.add_argument('minFee', help="set liquidity fee Proportion: minFee / 10000")
     parser_add.add_argument('fixedFee', help="set fixedFee. Unit wei.")
-    parser_add.add_argument('allocPoint', help="How many allocation points assigned to this pool. YESs to distribute per block.")
+    parser_add.add_argument('allocPoint', help="How many allocation points assigned to this pool. YESs to distribute per block. MaxAllocPoint = 4000.")
     parser_add.add_argument('--nativeWrap', help="nativeWrap Flag", action='store_true')
     parser_add.add_argument('--amount', help="Optional. then add token to liquidity. Unit ether.")
     parser_add.set_defaults(func=func_add)
@@ -145,10 +154,11 @@ if __name__ == "__main__":
     parser_setFeeShare.add_argument('--Contributor', help="allocated point For Contributor. Proportion Max 10000.")
     parser_setFeeShare.set_defaults(func=func_setFeeShare)
 
-    parser_setFeeAdmin = subparsers.add_parser('setFeeAdmin', help='Set the fee admin address.')
-    parser_setFeeAdmin.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
-    parser_setFeeAdmin.add_argument('admin', help="allocated point For Provider. Proportion Max 10000.")
-    parser_setFeeAdmin.set_defaults(func=func_setFeeAdmin)
+    parser_grantRole = subparsers.add_parser('grantRole', help='Set the FEE_SETTER_ROLE and PRICE_SETTER_ROLE.')
+    parser_grantRole.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
+    parser_grantRole.add_argument('--FEE_SETTER_ROLE', help="admin address to FEE_SETTER_ROLE (Option)", metavar='admin_adress')
+    parser_grantRole.add_argument('--PRICE_SETTER_ROLE', help="admin address to PRICE_SETTER_ROLE (Option)", metavar='admin_address')
+    parser_grantRole.set_defaults(func=func_grantRole)
 
     args = parser.parse_args()
 
@@ -158,10 +168,8 @@ if __name__ == "__main__":
     w3 = Web3(Web3.HTTPProvider(n['Provider']))
 
     if args.network == 'Findora':
-        # LP_address = n['columbus']["chain501"]['relayer']
         LP_address = n['columbus']["chain501"]['pool']
     else:
-        # LP_address = n['columbus']['deck']
         LP_address = n['columbus']['pool']
 
     args.func(w3, LP_address, args)

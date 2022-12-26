@@ -22,11 +22,8 @@ blockConfirmations = 3
 with open(password_path, 'r') as f:
     KEYSTORE_PASSWORD = f.read()
 
-# uni_resourceID = "0x000000000000000000000000000000c76ebe4a02bbc34786d860b355f5111301"
 resourceID_301 = "0x000000000000000000000000000000c76ebe4a02bbc34786d860b355f5111301"
 resourceID_501 = "0x000000000000000000000000000000c76ebe4a02bbc34786d860b355f5111501"
-
-mnemonic_file_path = "/home/platform/findora_wallet/Mnemonic_Big_qa02"
 
 contract_json_path = {}
 for i in os.listdir('contracts'):
