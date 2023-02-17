@@ -10,7 +10,7 @@ def deployCTokenContract(w3, token_address):
     erc20_abi = load_abi("ERC20")
     token_contract = w3.eth.contract(token_address, abi=erc20_abi)
     name = "c"+token_contract.functions.name().call() 
-    symbol = token_contract.functions.symbol().call()
+    symbol = "c"+token_contract.functions.symbol().call()
     decimals = token_contract.functions.decimals().call()
 
     return Deploy_Contract(w3, "CToken", (name, symbol, int(decimals), load_owner().address))

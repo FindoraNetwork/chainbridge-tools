@@ -25,6 +25,8 @@ def pull_and_build():
     pwd = os.getcwd()
     os.chdir("/home/ys/ys-contracts/contracts")
 
+    os.system("cp -f staking/* .")
+
     sol_files = []
     for i in os.listdir("."):
         if ".sol" in i and i != "Greeter.sol":

@@ -181,7 +181,7 @@ def upgradeable_Update(w3_obj, proxy_address, contract_name):
     real_address = Deploy_Contract(w3_obj, contract_name, ())
     
     proxy = w3_obj.eth.contract(proxy_address, abi=load_abi(Proxy_name))
-    proxyadmin_address = proxy.functions.proxyAdmin().call()
+    proxyadmin_address = proxy.functions.getAdmin().call()
     proxyadmin = w3_obj.eth.contract(proxyadmin_address, abi=load_abi(ProxyAdmin_name))
 
     func = proxyadmin.functions.upgrade(proxy_address, real_address)
