@@ -27,9 +27,9 @@ def LP_setWrap(w3, LP_address, WFRA_address):
     tx_hash = sign_send_wait(w3, func)
     print("LP_setWrap {} transaction hash: {}".format(WFRA_address, tx_hash.hex()))
 
-def LP_addMarket(w3, LP_address, _token, _cToken, _minAdd, _fee, _fixedFee):
+def LP_addMarket(w3, LP_address, _token, _cToken, _minAdd, _fee, _fixedFee, _pid):
     LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusPool'))
-    func = LP_contract.functions.addMarket(_token, _cToken, int(_minAdd), int(_fee), int(_fixedFee))
+    func = LP_contract.functions.addMarket(_token, _cToken, int(_minAdd), int(_fee), int(_fixedFee), _pid)
     tx_hash = sign_send_wait(w3, func)
     print("LP_addMarket {} transaction hash: {}".format(_token, tx_hash.hex()))
 
@@ -67,10 +67,21 @@ def Farm_add(w3, farm_address, _allocPoint, _lpToken):
     tx_hash = sign_send_wait(w3, func)
     print("Farm_add transaction hash: {}".format(tx_hash.hex()))
     
+def Oracle_setAssetSources(w3, oracle_address, _asset, _source):
+    oracle_contract = w3.eth.contract(oracle_address, abi=load_abi("ColumbusOracle"))
+    func = oracle_contract.functions.setAssetSources([_asset], [_source])
+    tx_hash = sign_send_wait(w3, func)
+    print("Oracle_setAssetSources transaction hash: {}".format(tx_hash.hex()))
+
+def get_Farm_Pid(farm_address):
+    farm_contract = w3.eth.contract(farm_address, abi=load_abi("TreasureCave"))
+    return farm_contract.functions.poolLength().call()
+
 
 def func_add(w3, LP_address, args):
     _, t = config.get_Token(args.name)
     token_address = t['address'][args.network]
+    farm_address = n["columbus"]["farm"]
 
     focus_print("Deployment CToken Contract")
     CToken_address = deployCTokenContract(w3, token_address)
@@ -78,10 +89,9 @@ def func_add(w3, LP_address, args):
     adminSetMinter_LP(w3, CToken_address, LP_address)
 
     focus_print("Call LP.addMarket")
-    LP_addMarket(w3, LP_address, token_address, CToken_address, args.minAdd, args.minFee, args.fixedFee)
+    LP_addMarket(w3, LP_address, token_address, CToken_address, args.minAdd, args.minFee, args.fixedFee, get_Farm_Pid(farm_address))
 
     focus_print("Farm_add new lpToken")
-    farm_address = n["columbus"]["farm"]
     lpToken_address = CToken_address
     Farm_add(w3, farm_address, args.allocPoint, lpToken_address)
 
@@ -101,6 +111,17 @@ def func_add(w3, LP_address, args):
             LP_addNativeLiquidity(w3, LP_address,args.amount)
         else:
             LP_addLiquidity(w3, LP_address, token_address, args.amount)
+    
+    if args.PriceSource != None:
+        focus_print("Call Oracle.setAssetSources")
+        oracle_address = n["columbus"]["oracle"]
+        Oracle_setAssetSources(w3, oracle_address, token_address, args.PriceSource)
+        
+        if not "PriceSource" in t:
+            t["PriceSource"] = {}
+        t["PriceSource"][args.network] = args.PriceSource
+        config.save()
+
 
 def func_setFeeShare(w3, LP_address, args):
     # 0: Provider, 1: Platform, 2: Contributor
@@ -113,21 +134,6 @@ def func_setFeeShare(w3, LP_address, args):
     if args.Contributor != None:
         focus_print("Call LP.setFeeShare To Contributor")
         LP_setFeeShare(w3, LP_address, 2, int(args.Contributor))
-
-def func_grantRole(w3, LP_address, args):
-    LP_contract = w3.eth.contract(LP_address, abi=load_abi('ColumbusPool'))
-    if args.FEE_SETTER_ROLE != None:
-        admin_address = args.FEE_SETTER_ROLE
-        FEE_SETTER_ROLE = LP_contract.functions.FEE_SETTER_ROLE().call()
-        func = LP_contract.functions.grantRole(FEE_SETTER_ROLE, admin_address)
-        tx_hash = sign_send_wait(w3, func)
-        print("LP FEE_SETTER_ROLE {} transaction hash: {}".format(admin_address, tx_hash.hex()))
-    if args.PRICE_SETTER_ROLE != None:
-        admin_address = args.PRICE_SETTER_ROLE
-        PRICE_SETTER_ROLE = LP_contract.functions.PRICE_SETTER_ROLE().call()
-        func = LP_contract.functions.grantRole(PRICE_SETTER_ROLE, admin_address)
-        tx_hash = sign_send_wait(w3, func)
-        print("LP PRICE_SETTER_ROLE {} transaction hash: {}".format(admin_address, tx_hash.hex()))
 
 
 if __name__ == "__main__":
@@ -145,6 +151,7 @@ if __name__ == "__main__":
     parser_add.add_argument('allocPoint', help="How many allocation points assigned to this pool. YESs to distribute per block. MaxAllocPoint = 4000.")
     parser_add.add_argument('--nativeWrap', help="nativeWrap Flag", action='store_true')
     parser_add.add_argument('--amount', help="Optional. then add token to liquidity. Unit ether.")
+    parser_add.add_argument('--PriceSource', help="Optional. The price source of the asset for ColumbusOracle.")
     parser_add.set_defaults(func=func_add)
 
     parser_setFeeShare = subparsers.add_parser('setFeeShare', help='Set the point for allocate fees.')
@@ -153,12 +160,6 @@ if __name__ == "__main__":
     parser_setFeeShare.add_argument('--Platform', help="allocated point For Platform. Proportion Max 10000.")
     parser_setFeeShare.add_argument('--Contributor', help="allocated point For Contributor. Proportion Max 10000.")
     parser_setFeeShare.set_defaults(func=func_setFeeShare)
-
-    parser_grantRole = subparsers.add_parser('grantRole', help='Set the FEE_SETTER_ROLE and PRICE_SETTER_ROLE.')
-    parser_grantRole.add_argument('network', help="Specific Network Name (Must exist in the config!!!)")
-    parser_grantRole.add_argument('--FEE_SETTER_ROLE', help="admin address to FEE_SETTER_ROLE (Option)", metavar='admin_adress')
-    parser_grantRole.add_argument('--PRICE_SETTER_ROLE', help="admin address to PRICE_SETTER_ROLE (Option)", metavar='admin_address')
-    parser_grantRole.set_defaults(func=func_grantRole)
 
     args = parser.parse_args()
 

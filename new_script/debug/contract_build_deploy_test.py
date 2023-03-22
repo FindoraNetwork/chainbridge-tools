@@ -26,10 +26,17 @@ def pull_and_build():
     os.chdir("/home/ys/ys-contracts/contracts")
 
     os.system("cp -f staking/* .")
+    os.system('''sed -i 's#"contracts/#"./#g' *.sol''')
+
+    disable_list = [
+        "Greeter.sol",
+        "ColumbusMath.sol",
+        "Pay.sol"
+    ]
 
     sol_files = []
     for i in os.listdir("."):
-        if ".sol" in i and i != "Greeter.sol":
+        if ".sol" in i and i not in disable_list:
             sol_files.append(i)
 
     compiled = solcx.compile_files(

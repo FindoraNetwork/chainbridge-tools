@@ -15,8 +15,8 @@ def deployGenericHandler(w3, bridge_address):
 def deployColumbusDeck(w3, genericHandlerAddress, columbusAssetAddress):
     return upgradeable_Deploy(w3, "ColumbusDeck", (genericHandlerAddress, columbusAssetAddress))
 
-def deployColumbusPool(w3):
-    return upgradeable_Deploy(w3, "ColumbusPool", ())
+def deployColumbusPool(w3, oracle_='0x0000000000000000000000000000000000000000'):
+    return upgradeable_Deploy(w3, "ColumbusPool", (oracle_, '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000'))
 
 def Farm_Function_Library(w3, yesPerSecond, startTime, endTime, pool_address):
     focus_print("Deployment YESToken Contract")
@@ -70,6 +70,9 @@ def Deck_setColumbusPool(w3, deck_address, _addr):
 
 def deployColumbusAsset(w3):
     return Deploy_Contract(w3, "ColumbusAsset", ())
+
+def deployColumbusOracle(w3):
+    return Deploy_Contract(w3, "ColumbusOracle", ([],[]))
 
 def adminSetGenericResource_Destination(w3, bridge_address, handler_address, deck_address):
     bridge_abi = load_abi("Bridge")
@@ -127,8 +130,10 @@ if __name__ == "__main__":
     handler_address = deployGenericHandler(w3, bridge_address)
     focus_print("Deployment ColumbusAsset Contract")
     asset_address = deployColumbusAsset(w3)
+    focus_print("Deployment ColumbusOracle Contract")
+    oracle_address = deployColumbusOracle(w3)
     focus_print("Deployment ColumbusPool Contract (upgradeable)")
-    pool_address = deployColumbusPool(w3)
+    pool_address = deployColumbusPool(w3, oracle_address)
     focus_print("Deployment ColumbusDeck Contract (upgradeable)")
     deck_address = deployColumbusDeck(w3, handler_address, asset_address)
     focus_print("Call Pool.setColumbus")
@@ -158,7 +163,8 @@ if __name__ == "__main__":
                 "pool": pool_address,
                 "asset": asset_address,
                 "farm" : farm_address,
-                "yes": yes_address
+                "yes": yes_address,
+                "oracle": oracle_address
             }
         }
     )
